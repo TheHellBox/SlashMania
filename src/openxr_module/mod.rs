@@ -124,6 +124,10 @@ impl OpenXR {
                 height: self.resolution.1 as i32
             }
         };
+        let (view_flags, views) = self.session
+            .locate_views(self.predicted_display_time, self.spaces.0.as_ref().unwrap())
+            .unwrap();
+
         let time = self.predicted_display_time;
         let left_subimage: xr::SwapchainSubImage<xr::OpenGL> = openxr::SwapchainSubImage::new()
             .swapchain(swap_chain)
@@ -134,10 +138,17 @@ impl OpenXR {
             .image_array_index(1)
             .image_rect(eye_rect);
 
-        let projection_view_left = xr::CompositionLayerProjectionView::new().sub_image(left_subimage);
-        let projection_view_right = xr::CompositionLayerProjectionView::new().sub_image(right_subimage);
-        let views = [projection_view_left, projection_view_right];
-        let projection = xr::CompositionLayerProjection::new().views(&views);
+        let projection_view_left = xr::CompositionLayerProjectionView::new()
+            .pose(views[0].pose)
+            .fov(views[0].fov)
+            .sub_image(left_subimage);
+        let projection_view_right = xr::CompositionLayerProjectionView::new()
+            .pose(views[1].pose)
+            .fov(views[1].fov)
+            .sub_image(right_subimage);
+        println!("{:?}", views[1].pose.position.x);
+        let proj_views = [projection_view_left, projection_view_right];
+        let projection = xr::CompositionLayerProjection::new().views(&proj_views);
         self.frame_stream.end(time, xr::EnvironmentBlendMode::OPAQUE, &[&projection]).unwrap();
     }
     pub fn get_swapchain_image(&mut self) -> Option<u32>{

@@ -60,7 +60,7 @@ impl Window{
             };
             let depthtexture = DepthTexture2d::empty_with_format(&self.context, DepthFormat::F32, MipmapsOption::NoMipmap, self.xr.resolution.0, self.xr.resolution.1).unwrap();
             let mut target = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(&self.context, &texture_left, &depthtexture).unwrap();
-            target.clear_color_and_depth((1.0, 0.0, 1.0, 1.0), 1.0);
+            target.clear_color_and_depth((0.6, 0.6, 0.6, 1.0), 1.0);
             self.xr.release_swapchain_image();
             self.xr.frame_stream_end();
         }
