@@ -9,7 +9,7 @@ pub struct OpenXR {
     pub spaces: (Option<xr::Space>, Option<xr::Space>),
     pub session_state: xr::SessionState,
     pub resolution: (u32, u32),
-    recommended_sample_count: u32,
+    pub recommended_sample_count: u32,
     frame_stream: xr::FrameStream<xr::OpenGL>,
     predicted_display_time: xr::Time,
     swap_chain: Option<xr::Swapchain<xr::OpenGL>>
@@ -146,7 +146,6 @@ impl OpenXR {
             .pose(views[1].pose)
             .fov(views[1].fov)
             .sub_image(right_subimage);
-        println!("{:?}", views[1].pose.position.x);
         let proj_views = [projection_view_left, projection_view_right];
         let projection = xr::CompositionLayerProjection::new().views(&proj_views);
         self.frame_stream.end(time, xr::EnvironmentBlendMode::OPAQUE, &[&projection]).unwrap();

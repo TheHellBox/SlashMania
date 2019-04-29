@@ -48,19 +48,31 @@ impl Window{
         let swapchain_image = self.xr.get_swapchain_image();
         if let Some(swapchain_image) = swapchain_image{
             self.xr.frame_stream_begin();
-            let texture_left = unsafe{
-                glium::texture::srgb_texture2d::SrgbTexture2d::from_id(
+            let texture_array = unsafe{
+                glium::texture::srgb_texture2d_array::SrgbTexture2dArray::from_id(
                     &self.context,
                     glium::texture::SrgbFormat::U8U8U8,
                     swapchain_image,
                     true,
-                    glium::texture::MipmapsOption::NoMipmap,
-                    glium::texture::Dimensions::Texture2d{width: self.xr.resolution.0, height: self.xr.resolution.1}
+                    glium::texture::MipmapsOption::EmptyMipmaps,
+                    glium::texture::Dimensions::Texture2dArray{
+                        width: self.xr.resolution.0,
+                        height: self.xr.resolution.1,
+                        array_size: 2,
+                    }
                 )
             };
-            let depthtexture = DepthTexture2d::empty_with_format(&self.context, DepthFormat::F32, MipmapsOption::NoMipmap, self.xr.resolution.0, self.xr.resolution.1).unwrap();
-            let mut target = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(&self.context, &texture_left, &depthtexture).unwrap();
+            let texture_left = texture_array.layer(0).unwrap().mipmap(0).unwrap();
+            let texture_right = texture_array.layer(1).unwrap().mipmap(0).unwrap();
+
+            let depthtexture = DepthTexture2d::empty_with_format(&self.context, DepthFormat::F32, MipmapsOption::EmptyMipmaps, self.xr.resolution.0, self.xr.resolution.1).unwrap();
+            let mut target = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(&self.context, texture_left, &depthtexture).unwrap();
             target.clear_color_and_depth((0.6, 0.6, 0.6, 1.0), 1.0);
+
+            let depthtexture = DepthTexture2d::empty_with_format(&self.context, DepthFormat::F32, MipmapsOption::EmptyMipmaps, self.xr.resolution.0, self.xr.resolution.1).unwrap();
+            let mut target = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(&self.context, texture_right, &depthtexture).unwrap();
+            target.clear_color_and_depth((0.6, 0.6, 0.6, 1.0), 1.0);
+
             self.xr.release_swapchain_image();
             self.xr.frame_stream_end();
         }
