@@ -19,7 +19,6 @@ pub mod backend;
 pub struct Window{
     pub context: Rc<glium::backend::Context>,
     pub xr: OpenXR,
-    pub size: (u32, u32),
     pub shaders: HashMap<String, Program>,
     pub models: HashMap<String, VertexBufferAny>,
     pub textures: HashMap<String, Texture2d>,
@@ -37,7 +36,6 @@ impl Window{
         Self{
             context,
             xr,
-            size: (800, 600),
             shaders: HashMap::new(),
             models: HashMap::new(),
             textures: HashMap::new(),
@@ -50,7 +48,6 @@ impl Window{
         let swapchain_image = self.xr.get_swapchain_image();
         if let Some(swapchain_image) = swapchain_image{
             self.xr.frame_stream_begin();
-            println!("Rendering!");
             let texture_left = unsafe{
                 glium::texture::srgb_texture2d::SrgbTexture2d::from_id(
                     &self.context,
@@ -74,23 +71,23 @@ impl Window{
     pub fn compile_shaders(&mut self){
         use shaders::*;
         println!("Compiling shaders...");
-        //let simple = glium::Program::from_source(&self.display, SHADER_SIMPLE_VERT, SHADER_SIMPLE_FRAG, None).unwrap();
-        //self.shaders.insert("simple".to_string(), simple);
+        let simple = glium::Program::from_source(&self.context, SHADER_SIMPLE_VERT, SHADER_SIMPLE_FRAG, None).unwrap();
+        self.shaders.insert("simple".to_string(), simple);
     }
     pub fn load_default_models(&mut self){
         use crate::obj_loader::load_obj;
-        //self.models.insert("block".to_string(), load_obj("./assets/models/block.obj", &self.display));
-        //self.models.insert("cube".to_string(), load_obj("./assets/models/cube.obj", &self.display));
+        self.models.insert("block".to_string(), load_obj("./assets/models/block.obj", &self.context));
+        self.models.insert("cube".to_string(), load_obj("./assets/models/cube.obj", &self.context));
     }
     pub fn load_default_textures(&mut self){
         use crate::textures::load_texture;
-        /*self.textures.insert("dev".to_string(), load_texture("./assets/textures/dev.png".to_string(), &self.display));
-        self.textures.insert("mine".to_string(), load_texture("./assets/textures/mine.png".to_string(), &self.display));
-        self.textures.insert("note_red".to_string(), load_texture("./assets/textures/note_red.png".to_string(), &self.display));
-        self.textures.insert("obstacle".to_string(), load_texture("./assets/textures/obstacle.png".to_string(), &self.display));
-        self.textures.insert("note_blue".to_string(), load_texture("./assets/textures/note_blue.png".to_string(), &self.display));
-        self.textures.insert("note_middle_red".to_string(), load_texture("./assets/textures/note_middle_red.png".to_string(), &self.display));
-        self.textures.insert("note_middle_blue".to_string(), load_texture("./assets/textures/note_middle_blue.png".to_string(), &self.display));*/
+        self.textures.insert("dev".to_string(), load_texture("./assets/textures/dev.png".to_string(), &self.context));
+        self.textures.insert("mine".to_string(), load_texture("./assets/textures/mine.png".to_string(), &self.context));
+        self.textures.insert("note_red".to_string(), load_texture("./assets/textures/note_red.png".to_string(), &self.context));
+        self.textures.insert("obstacle".to_string(), load_texture("./assets/textures/obstacle.png".to_string(), &self.context));
+        self.textures.insert("note_blue".to_string(), load_texture("./assets/textures/note_blue.png".to_string(), &self.context));
+        self.textures.insert("note_middle_red".to_string(), load_texture("./assets/textures/note_middle_red.png".to_string(), &self.context));
+        self.textures.insert("note_middle_blue".to_string(), load_texture("./assets/textures/note_middle_blue.png".to_string(), &self.context));
     }
 }
 

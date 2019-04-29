@@ -1,12 +1,10 @@
-#![allow(unused)]
-
 use crate::render::Vertex;
 
 use tobj;
-use glium::Display;
+use glium::{backend::Facade};
 use glium::vertex::{VertexBuffer, VertexBufferAny};
 
-pub fn load_obj(path: &'static str, disp: &Display) -> VertexBufferAny{
+pub fn load_obj<F: Facade + ?Sized>(path: &'static str, disp: &F) -> VertexBufferAny{
     use std::path::Path;
 
     let raw = tobj::load_obj(&Path::new(&path));

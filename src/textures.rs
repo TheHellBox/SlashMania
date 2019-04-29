@@ -1,10 +1,8 @@
-#![allow(unused)]
-
 use image;
-use glium::Display;
+use glium::{backend::Facade};
 use glium::texture::Texture2d;
 
-pub fn load_texture(path: String, disp: &Display) -> Texture2d{
+pub fn load_texture<F: Facade + ?Sized>(path: String, disp: &F) -> Texture2d{
     use std::path::Path;
     use glium::texture::RawImage2d;
     if let Ok(img) = image::open(Path::new(&path)){
