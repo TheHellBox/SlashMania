@@ -8,6 +8,8 @@ pub struct OpenXR {
     pub session: xr::Session<xr::OpenGL>,
     pub spaces: (Option<xr::Space>, Option<xr::Space>),
     pub session_state: xr::SessionState,
+    pub resolution: (u32, u32),
+    recommended_sample_count: u32,
     frame_stream: xr::FrameStream<xr::OpenGL>,
     predicted_display_time: xr::Time,
     swap_chain: Option<xr::Swapchain<xr::OpenGL>>
@@ -40,13 +42,20 @@ impl OpenXR {
 
         let spaces = init_spaces(&session);
 
+        let view_configuration_views = instance.enumerate_view_configuration_views(system, xr::ViewConfigurationType::PRIMARY_STEREO).unwrap();
+        let resolution = (view_configuration_views[0].recommended_image_rect_width, view_configuration_views[0].recommended_image_rect_height);
+        println!("resolution: {:?}", resolution);
+        let recommended_sample_count = view_configuration_views[0].recommended_swapchain_sample_count;
+
         OpenXR{
             entry,
             instance,
             session,
             spaces,
             session_state: xr::SessionState::UNKNOWN,
+            resolution: resolution,
             frame_stream,
+            recommended_sample_count,
             predicted_display_time: xr::Time::from_raw(0),
             swap_chain: None
         }
@@ -89,12 +98,11 @@ impl OpenXR {
             create_flags: xr::SwapchainCreateFlags::EMPTY,
             usage_flags: xr::SwapchainUsageFlags::COLOR_ATTACHMENT,
             format: GL_RGBA8,
-            sample_count: 1,
-            // NOTE: Change resolution to correct
-            width: 800,
-            height: 600,
+            sample_count: self.recommended_sample_count,
+            width: self.resolution.0,
+            height: self.resolution.1,
             face_count: 1,
-            array_size: 1,
+            array_size: 2,
             mip_count: 1
         };
         self.swap_chain = Some(self.session.create_swapchain(&swapchain_create_info).unwrap());
@@ -111,20 +119,19 @@ impl OpenXR {
                 x: 0,
                 y: 0
             },
-            // NOTE: Use actual resolution
             extent: xr::Extent2Di{
-                width: 800,
-                height: 600
+                width: self.resolution.0 as i32,
+                height: self.resolution.1 as i32
             }
         };
         let time = self.predicted_display_time;
-        // NOTE: Probably we should move it away from frame_stream_end
-
         let left_subimage: xr::SwapchainSubImage<xr::OpenGL> = openxr::SwapchainSubImage::new()
             .swapchain(swap_chain)
+            .image_array_index(0)
             .image_rect(eye_rect);
         let right_subimage: xr::SwapchainSubImage<xr::OpenGL> = openxr::SwapchainSubImage::new()
             .swapchain(swap_chain)
+            .image_array_index(1)
             .image_rect(eye_rect);
 
         let projection_view_left = xr::CompositionLayerProjectionView::new().sub_image(left_subimage);

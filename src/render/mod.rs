@@ -51,18 +51,18 @@ impl Window{
         if let Some(swapchain_image) = swapchain_image{
             self.xr.frame_stream_begin();
             println!("Rendering!");
-            let color = unsafe{
+            let texture_left = unsafe{
                 glium::texture::srgb_texture2d::SrgbTexture2d::from_id(
                     &self.context,
                     glium::texture::SrgbFormat::U8U8U8,
                     swapchain_image,
                     true,
                     glium::texture::MipmapsOption::NoMipmap,
-                    glium::texture::Dimensions::Texture2d{width: 800, height: 600}
+                    glium::texture::Dimensions::Texture2d{width: self.xr.resolution.0, height: self.xr.resolution.1}
                 )
             };
-            let depthtexture = DepthTexture2d::empty_with_format(&self.context, DepthFormat::F32, MipmapsOption::NoMipmap, 800, 600).unwrap();
-            let mut target = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(&self.context, &color, &depthtexture).unwrap();
+            let depthtexture = DepthTexture2d::empty_with_format(&self.context, DepthFormat::F32, MipmapsOption::NoMipmap, self.xr.resolution.0, self.xr.resolution.1).unwrap();
+            let mut target = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(&self.context, &texture_left, &depthtexture).unwrap();
             target.clear_color_and_depth((1.0, 0.0, 1.0, 1.0), 1.0);
             self.xr.release_swapchain_image();
             self.xr.frame_stream_end();
