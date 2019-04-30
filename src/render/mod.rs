@@ -49,12 +49,12 @@ impl Window{
         if let Some(swapchain_image) = swapchain_image{
             self.xr.frame_stream_begin();
             let texture_array = unsafe{
-                glium::texture::srgb_texture2d_array::SrgbTexture2dArray::from_id(
+                glium::texture::texture2d_array::Texture2dArray::from_id(
                     &self.context,
-                    glium::texture::SrgbFormat::U8U8U8,
+                    glium::texture::UncompressedFloatFormat::U8U8U8U8,
                     swapchain_image,
-                    true,
-                    glium::texture::MipmapsOption::EmptyMipmaps,
+                    false,
+                    glium::texture::MipmapsOption::NoMipmap,
                     glium::texture::Dimensions::Texture2dArray{
                         width: self.xr.resolution.0,
                         height: self.xr.resolution.1,

@@ -96,9 +96,9 @@ impl OpenXR {
 
         let swapchain_create_info: xr::SwapchainCreateInfo<xr::OpenGL> = xr::SwapchainCreateInfo{
             create_flags: xr::SwapchainCreateFlags::EMPTY,
-            usage_flags: xr::SwapchainUsageFlags::COLOR_ATTACHMENT,
+            usage_flags: xr::SwapchainUsageFlags::COLOR_ATTACHMENT | xr::SwapchainUsageFlags::SAMPLED,
             format: GL_RGBA8,
-            sample_count: self.recommended_sample_count,
+            sample_count: 1,
             width: self.resolution.0,
             height: self.resolution.1,
             face_count: 1,
