@@ -3,13 +3,6 @@ extern crate glium;
 #[macro_use]
 extern crate specs_derive;
 
-extern crate x11;
-extern crate tobj;
-extern crate specs;
-extern crate serde;
-extern crate openxr;
-extern crate serde_json;
-
 mod parser;
 mod render;
 mod textures;

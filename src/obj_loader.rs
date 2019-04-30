@@ -1,10 +1,10 @@
 use crate::render::Vertex;
 
-use tobj;
-use glium::{backend::Facade};
+use glium::backend::Facade;
 use glium::vertex::{VertexBuffer, VertexBufferAny};
+use tobj;
 
-pub fn load_obj<F: Facade + ?Sized>(path: &'static str, disp: &F) -> VertexBufferAny{
+pub fn load_obj<F: Facade + ?Sized>(path: &'static str, disp: &F) -> VertexBufferAny {
     use std::path::Path;
 
     let raw = tobj::load_obj(&Path::new(&path));
@@ -14,25 +14,33 @@ pub fn load_obj<F: Facade + ?Sized>(path: &'static str, disp: &F) -> VertexBuffe
         let mesh = &model.mesh;
         for idx in &mesh.indices {
             let i = *idx as usize;
-            let pos = [mesh.positions[3 * i], mesh.positions[3 * i + 1], mesh.positions[3 * i + 2]];
-            let normal =
-                if !mesh.normals.is_empty() {
-                    [mesh.normals[3 * i], mesh.normals[3 * i + 1], mesh.normals[3 * i + 2]]
-                } else {
-                    [0.0, 0.0, 0.0]
+            let pos = [
+                mesh.positions[3 * i],
+                mesh.positions[3 * i + 1],
+                mesh.positions[3 * i + 2],
+            ];
+            let normal = if !mesh.normals.is_empty() {
+                [
+                    mesh.normals[3 * i],
+                    mesh.normals[3 * i + 1],
+                    mesh.normals[3 * i + 2],
+                ]
+            } else {
+                [0.0, 0.0, 0.0]
             };
-            let texcord =
-                if !mesh.texcoords.is_empty() {
-                    [mesh.texcoords[i * 2], mesh.texcoords[i * 2 + 1]]
-                } else {
-                    [0.0, 0.0]
+            let texcord = if !mesh.texcoords.is_empty() {
+                [mesh.texcoords[i * 2], mesh.texcoords[i * 2 + 1]]
+            } else {
+                [0.0, 0.0]
             };
             vertex_data.push(Vertex {
                 position: pos,
                 normal: normal,
-                tex_coords: texcord
+                tex_coords: texcord,
             });
         }
     }
-    VertexBuffer::new(disp, &vertex_data).unwrap().into_vertex_buffer_any()
+    VertexBuffer::new(disp, &vertex_data)
+        .unwrap()
+        .into_vertex_buffer_any()
 }
