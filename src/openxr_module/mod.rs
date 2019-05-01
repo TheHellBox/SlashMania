@@ -16,8 +16,9 @@ pub struct OpenXR {
 }
 
 impl OpenXR {
-    pub fn new(backend: &crate::render::backend::Backend) -> Self {
+    pub fn new(backend: &mut crate::render::backend::Backend) -> Self {
         let entry = xr::Entry::linked();
+
         let extensions = entry
             .enumerate_extensions()
             .expect("Cannot enumerate extensions");
@@ -41,7 +42,7 @@ impl OpenXR {
             .system(xr::FormFactor::HEAD_MOUNTED_DISPLAY)
             .unwrap();
 
-        let info = backend.xr_session_create_info();
+        let info = unsafe { backend.xr_session_create_info() };
         let (session, frame_stream) = unsafe { instance.create_session(system, &info).unwrap() };
         session
             .begin(xr::ViewConfigurationType::PRIMARY_STEREO)
@@ -59,6 +60,7 @@ impl OpenXR {
         println!("resolution: {:?}", resolution);
         let recommended_sample_count =
             view_configuration_views[0].recommended_swapchain_sample_count;
+        backend.dimmensions = resolution;
 
         OpenXR {
             entry,

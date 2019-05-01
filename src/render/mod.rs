@@ -4,6 +4,7 @@ use crate::parser::*;
 use crate::SCALE;
 
 use glium::{vertex::VertexBufferAny, Display, DrawParameters, Frame, Program, Surface, Texture2d};
+use glium::texture::{DepthFormat, DepthTexture2d, MipmapsOption, UncompressedFloatFormat};
 use nalgebra::{Matrix4, Translation3, UnitQuaternion};
 use std::collections::HashMap;
 
@@ -22,19 +23,29 @@ pub struct Window {
     pub shaders: HashMap<String, Program>,
     pub models: HashMap<String, VertexBufferAny>,
     pub textures: HashMap<String, Texture2d>,
+    pub depth_texture: DepthTexture2d,
     pub camera: camera::Camera,
 }
 
 impl Window {
     // I have no experience working with X11, so expect monkey code
     pub fn new() -> Self {
-        let backend = backend::Backend::new();
-        let xr = OpenXR::new(&backend);
+        let mut backend = backend::Backend::new();
+        let xr = OpenXR::new(&mut backend);
         let context =
             unsafe { glium::backend::Context::new(backend, false, Default::default()) }.unwrap();
+
+        let depth_texture = DepthTexture2d::empty_with_format(
+            &context,
+            DepthFormat::F32,
+            MipmapsOption::EmptyMipmaps,
+            xr.resolution.0,
+            xr.resolution.1,
+        ).unwrap();
         Self {
             context,
             xr,
+            depth_texture,
             shaders: HashMap::new(),
             models: HashMap::new(),
             textures: HashMap::new(),
@@ -42,8 +53,6 @@ impl Window {
         }
     }
     pub fn draw(&mut self) {
-        use glium::texture::{DepthFormat, DepthTexture2d, MipmapsOption, UncompressedFloatFormat};
-
         let swapchain_image = self.xr.get_swapchain_image();
         if let Some(swapchain_image) = swapchain_image {
             self.xr.frame_stream_begin();
@@ -64,18 +73,10 @@ impl Window {
             let texture_left = texture_array.layer(0).unwrap().mipmap(0).unwrap();
             let texture_right = texture_array.layer(1).unwrap().mipmap(0).unwrap();
 
-            let depthtexture = DepthTexture2d::empty_with_format(
-                &self.context,
-                DepthFormat::F32,
-                MipmapsOption::EmptyMipmaps,
-                self.xr.resolution.0,
-                self.xr.resolution.1,
-            )
-            .unwrap();
             let mut target = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
                 &self.context,
                 texture_left,
-                &depthtexture,
+                &self.depth_texture,
             )
             .unwrap();
             target.clear_color_and_depth((0.6, 0.6, 0.6, 1.0), 1.0);

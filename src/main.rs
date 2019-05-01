@@ -3,12 +3,12 @@ extern crate glium;
 #[macro_use]
 extern crate specs_derive;
 
-mod parser;
-mod render;
-mod textures;
 mod components;
 mod obj_loader;
 mod openxr_module;
+mod parser;
+mod render;
+mod textures;
 
 pub static SCALE: f32 = 5.0;
 
