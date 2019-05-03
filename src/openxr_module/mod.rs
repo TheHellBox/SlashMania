@@ -1,3 +1,5 @@
+pub mod xrmath;
+
 use openxr as xr;
 
 const GL_RGBA8: u32 = 0x8058;
@@ -114,7 +116,7 @@ impl SwapChains {
     ) {
         let resolution_left = self.resolution_left;
         let resolution_right = self.resolution_right;
-        println!("resolution_right {:?}", resolution_right);
+
         let eye_rect_left = xr::Rect2Di {
             offset: xr::Offset2Di { x: 0, y: 0 },
             extent: xr::Extent2Di {
@@ -145,13 +147,14 @@ impl SwapChains {
 }
 
 pub struct OpenXR {
-    pub entry: xr::Entry,
-    pub instance: xr::Instance,
-    pub session: xr::Session<xr::OpenGL>,
-    pub system: openxr::SystemId,
+    entry: xr::Entry,
+    instance: xr::Instance,
+    session: xr::Session<xr::OpenGL>,
+    system: openxr::SystemId,
     pub swapchains: SwapChains,
     pub spaces: (Option<xr::Space>, Option<xr::Space>),
     pub session_state: xr::SessionState,
+    pub views: Vec<xr::View>,
     frame_stream: xr::FrameStream<xr::OpenGL>,
     predicted_display_time: xr::Time,
 }
@@ -210,6 +213,7 @@ impl OpenXR {
             frame_stream,
             predicted_display_time: xr::Time::from_raw(0),
             swapchains: SwapChains::empty(),
+            views: Vec::with_capacity(4),
         }
     }
 
@@ -242,6 +246,11 @@ impl OpenXR {
                 }
             }
         }
+        let (_, views) = self
+            .session
+            .locate_views(self.predicted_display_time, self.spaces.0.as_ref().unwrap())
+            .unwrap();
+        self.views = views;
     }
     pub fn create_swapchains(&mut self) {
         self.swapchains = SwapChains::new_from_session(&self.session, &self.instance, self.system);
@@ -253,17 +262,13 @@ impl OpenXR {
     }
     pub fn frame_stream_end(&mut self) {
         let subimages = self.swapchains.get_subimages();
-        let (view_flags, views) = self
-            .session
-            .locate_views(self.predicted_display_time, self.spaces.0.as_ref().unwrap())
-            .unwrap();
         let projection_view_left = xr::CompositionLayerProjectionView::new()
-            .pose(views[0].pose)
-            .fov(views[0].fov)
+            .pose(self.views[0].pose)
+            .fov(self.views[0].fov)
             .sub_image(subimages.0);
         let projection_view_right = xr::CompositionLayerProjectionView::new()
-            .pose(views[1].pose)
-            .fov(views[1].fov)
+            .pose(self.views[1].pose)
+            .fov(self.views[1].fov)
             .sub_image(subimages.1);
         let proj_views = [projection_view_left, projection_view_right];
         let projection = xr::CompositionLayerProjection::new().views(&proj_views);

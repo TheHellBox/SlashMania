@@ -14,7 +14,9 @@ pub static SCALE: f32 = 5.0;
 
 fn main() {
     let mut window = render::Window::new();
-
+    window.compile_shaders();
+    window.load_default_models();
+    window.load_default_textures();
     'main: loop {
         let frame = window.draw();
         window.update_xr();

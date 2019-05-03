@@ -1,29 +1,24 @@
 #![allow(unused)]
 use crate::openxr_module::OpenXR;
-use crate::parser::*;
-use crate::SCALE;
 
-use glium::texture::{DepthFormat, DepthTexture2d, MipmapsOption, UncompressedFloatFormat};
-use glium::{vertex::VertexBufferAny, Display, DrawParameters, Frame, Program, Surface, Texture2d};
+use glium::texture::{DepthFormat, DepthTexture2d, MipmapsOption};
+use glium::{vertex::VertexBufferAny, Program, Surface, Texture2d};
 use nalgebra::{Matrix4, Translation3, UnitQuaternion};
 use std::collections::HashMap;
 
-use std::ffi::{c_void, CString};
-use std::os::raw::*;
 use std::rc::Rc;
-use x11::{glx, xlib};
 
 pub mod backend;
-pub mod camera;
-pub mod shaders;
+mod draw;
+mod shaders;
 
 pub struct Window {
-    pub context: Rc<glium::backend::Context>,
-    pub xr: OpenXR,
-    pub shaders: HashMap<String, Program>,
-    pub models: HashMap<String, VertexBufferAny>,
-    pub textures: HashMap<String, Texture2d>,
-    pub depth_textures: Option<(DepthTexture2d, DepthTexture2d)>,
+    context: Rc<glium::backend::Context>,
+    xr: OpenXR,
+    shaders: HashMap<String, Program>,
+    models: HashMap<String, VertexBufferAny>,
+    textures: HashMap<String, Texture2d>,
+    depth_textures: Option<(DepthTexture2d, DepthTexture2d)>,
 }
 
 impl Window {
@@ -32,7 +27,6 @@ impl Window {
         let xr = OpenXR::new(&mut backend);
         let context =
             unsafe { glium::backend::Context::new(backend, false, Default::default()) }.unwrap();
-
         Self {
             context,
             xr,
@@ -96,27 +90,26 @@ impl Window {
                     },
                 )
             };
-            let mut target = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
+            let mut left_eye_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
                 &self.context,
                 &texture_left,
                 &depth_textures.0,
             )
             .unwrap();
-            target.clear_color_and_depth((0.6, 0.0, 0.0, 1.0), 1.0);
+            self.draw_image(left_eye_buffer, false);
 
-            let mut target = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
+            let mut right_eye_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
                 &self.context,
                 &texture_right,
                 &depth_textures.1,
             )
             .unwrap();
-            target.clear_color_and_depth((0.0, 0.0, 0.6, 1.0), 1.0);
+            self.draw_image(right_eye_buffer, true);
 
             self.xr.swapchains.release_images();
             self.xr.frame_stream_end();
         }
     }
-    fn draw_image() {}
     pub fn update_xr(&mut self) {
         self.xr.update();
     }
@@ -141,6 +134,10 @@ impl Window {
         self.models.insert(
             "cube".to_string(),
             load_obj("./assets/models/cube.obj", &self.context),
+        );
+        self.models.insert(
+            "test_scene".to_string(),
+            load_obj("./assets/models/test_scene.obj", &self.context),
         );
     }
     pub fn load_default_textures(&mut self) {
@@ -189,29 +186,3 @@ pub struct Vertex {
     pub tex_coords: [f32; 2],
 }
 implement_vertex!(Vertex, position, normal, tex_coords);
-
-pub fn calc_transform(
-    scale: (f32, f32, f32),
-    position: Translation3<f32>,
-    rotation: UnitQuaternion<f32>,
-) -> Matrix4<f32> {
-    let scale_matrix: Matrix4<f32> = Matrix4::new(
-        scale.0, 0.0, 0.0, 0.0, 0.0, scale.1, 0.0, 0.0, 0.0, 0.0, scale.2, 0.0, 0.0, 0.0, 0.0, 1.0,
-    );
-    let translation_matrix = position.to_homogeneous();
-    let rotation_matrix = rotation.to_homogeneous();
-    translation_matrix * rotation_matrix * scale_matrix
-}
-pub fn get_params() -> DrawParameters<'static> {
-    use glium::{draw_parameters, Depth, DepthTest};
-    DrawParameters {
-        depth: Depth {
-            test: DepthTest::IfLess,
-            write: true,
-            ..Default::default()
-        },
-        backface_culling: draw_parameters::BackfaceCullingMode::CullClockwise,
-        blend: draw_parameters::Blend::alpha_blending(),
-        ..Default::default()
-    }
-}

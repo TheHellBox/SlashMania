@@ -21,7 +21,7 @@ pub struct Backend {
     visual: *mut xlib::XVisualInfo,
     fb_config: *mut glx::GLXFBConfig,
     drawable: x11::xlib::Drawable,
-    pub dimmensions: (u32, u32)
+    pub dimmensions: (u32, u32),
 }
 
 impl Backend {
@@ -80,7 +80,7 @@ impl Backend {
                 visual,
                 fb_config,
                 drawable: root,
-                dimmensions: (800, 600)
+                dimmensions: (800, 600),
             }
         }
     }

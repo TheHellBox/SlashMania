@@ -20,13 +20,13 @@ in vec3 normal;
 in vec2 tex_coords;
 out vec3 v_normal;
 out vec2 v_tex_coords;
-uniform mat4 perspective;
-uniform mat4 matrix;
+uniform mat4 projection;
+uniform mat4 transform;
 uniform mat4 view;
 void main() {
-    mat4 modelview = view * matrix;
+    mat4 modelview = view * transform;
     v_normal = normal;
-    gl_Position = perspective * modelview * vec4(position, 1.0);
+    gl_Position = projection * modelview * vec4(position, 1.0);
     v_tex_coords = tex_coords;
 }
 "#;
