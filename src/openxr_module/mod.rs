@@ -52,7 +52,7 @@ impl SwapChains {
                 width: resolution_left.0,
                 height: resolution_left.1,
                 face_count: 1,
-                array_size: 2,
+                array_size: 1,
                 mip_count: 1,
             };
 
@@ -66,7 +66,7 @@ impl SwapChains {
                 width: resolution_right.0,
                 height: resolution_right.1,
                 face_count: 1,
-                array_size: 2,
+                array_size: 1,
                 mip_count: 1,
             };
 
@@ -94,8 +94,8 @@ impl SwapChains {
         &mut xr::Swapchain<xr::OpenGL>,
     )> {
         if self.swapchain_left.is_some() && self.swapchain_right.is_some() {
-            let mut swapchain_left = self.swapchain_left.as_mut().unwrap();
-            let mut swapchain_right = self.swapchain_right.as_mut().unwrap();
+            let swapchain_left = self.swapchain_left.as_mut().unwrap();
+            let swapchain_right = self.swapchain_right.as_mut().unwrap();
             Some((swapchain_left, swapchain_right))
         } else {
             None

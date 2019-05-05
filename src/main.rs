@@ -18,7 +18,7 @@ fn main() {
     window.load_default_models();
     window.load_default_textures();
     'main: loop {
-        let frame = window.draw();
+        let _frame = window.draw();
         window.update_xr();
     }
 }

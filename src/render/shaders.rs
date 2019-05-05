@@ -1,4 +1,3 @@
-#![allow(unused)]
 pub const SHADER_SIMPLE_FRAG: &'static str = r#"
 #version 140
 in vec3 v_normal;

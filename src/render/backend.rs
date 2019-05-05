@@ -5,7 +5,6 @@ use std::os::raw::c_int;
 use std::ptr;
 use std::ptr::null_mut;
 use x11::{glx, glx::arb, xlib};
-const GL_RGBA8: u32 = 0x8058;
 
 type GlXcreateContextAttribsArb = unsafe extern "C" fn(
     dpy: *mut xlib::Display,
@@ -16,7 +15,7 @@ type GlXcreateContextAttribsArb = unsafe extern "C" fn(
 ) -> glx::GLXContext;
 
 pub struct Backend {
-    context: glx::GLXContext,
+    pub context: glx::GLXContext,
     display: *mut xlib::Display,
     visual: *mut xlib::XVisualInfo,
     fb_config: *mut glx::GLXFBConfig,
@@ -38,7 +37,7 @@ impl Backend {
 
         let visual_attribs = [0];
 
-        let mut context_attribs = [
+        let context_attribs = [
             arb::GLX_CONTEXT_MAJOR_VERSION_ARB,
             3,
             arb::GLX_CONTEXT_MINOR_VERSION_ARB,
