@@ -1,7 +1,7 @@
 use crate::openxr_module::OpenXR;
 
 use glium::texture::{DepthFormat, DepthTexture2d, MipmapsOption};
-use glium::{vertex::VertexBufferAny, Program, Texture2d};
+use glium::{vertex::VertexBuffer, Program, Texture2d};
 use std::collections::HashMap;
 
 use renderdoc::prelude::*;
@@ -22,7 +22,7 @@ pub struct Window {
     context: Rc<glium::backend::Context>,
     xr: OpenXR,
     shaders: HashMap<String, Program>,
-    models: HashMap<String, VertexBufferAny>,
+    models: HashMap<String, VertexBuffer<Vertex>>,
     textures: HashMap<String, Texture2d>,
     depth_textures: Option<(DepthTexture2d, DepthTexture2d)>,
     renderdoc: Option<RenderDocWrapper>
@@ -45,7 +45,7 @@ impl Window {
                 let mut rd = RenderDoc::new().unwrap();
                 rd.set_active_window(raw_context as *mut _, std::ptr::null());
                 rd.mask_overlay_bits(OverlayBits::DEFAULT, OverlayBits::DEFAULT);
-                let rdw = RenderDocWrapper{
+                let mut rdw = RenderDocWrapper{
                     renderdoc: rd,
                     device: raw_context as *mut _
                 };
@@ -132,8 +132,8 @@ impl Window {
             self.draw_image(left_eye_buffer, false);
 
             if let Some(renderdoc_wrapper) = &mut self.renderdoc{
-                renderdoc_wrapper.renderdoc.start_frame_capture(renderdoc_wrapper.device, std::ptr::null());
-                std::thread::sleep(std::time::Duration::from_millis(1000));
+                renderdoc_wrapper.renderdoc.end_frame_capture(renderdoc_wrapper.device, std::ptr::null());
+                std::thread::sleep(std::time::Duration::from_millis(10000));
             }
 
             let right_eye_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(

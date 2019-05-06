@@ -32,7 +32,7 @@ impl Window {
 
         let transform: [[f32; 4]; 4] = calc_transform(
             (0.5, 0.1, 0.1),
-            Translation3::new(-3.0, 0.0, 0.0),
+            Translation3::new(0.0, 0.0, 0.0),
             UnitQuaternion::from_quaternion(nalgebra::Quaternion::new(1.0, 0.0, 0.0, 0.0)))
             .into();
 
@@ -65,13 +65,5 @@ pub fn calc_transform(
     position: Translation3<f32>,
     rotation: UnitQuaternion<f32>,
 ) -> Matrix4<f32> {
-    let scale_matrix: Matrix4<f32> = Matrix4::new(
-        scale.0, 0.0, 0.0, 0.0,
-        0.0, scale.1, 0.0, 0.0,
-        0.0, 0.0, scale.2, 0.0,
-        0.0, 0.0, 0.0, 1.0,
-    );
-    let translation_matrix = position.to_homogeneous();
-    let rotation_matrix = rotation.to_homogeneous();
-    translation_matrix * rotation_matrix * scale_matrix
+    nalgebra::Isometry3::from_parts(position, rotation).inverse().to_homogeneous()
 }

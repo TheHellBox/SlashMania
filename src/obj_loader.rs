@@ -4,7 +4,7 @@ use glium::backend::Facade;
 use glium::vertex::{VertexBuffer, VertexBufferAny};
 use tobj;
 
-pub fn load_obj<F: Facade + ?Sized>(path: &'static str, disp: &F) -> VertexBufferAny {
+pub fn load_obj<F: Facade + ?Sized>(path: &'static str, context: &F) -> VertexBuffer<Vertex> {
     use std::path::Path;
 
     let raw = tobj::load_obj(&Path::new(&path));
@@ -40,7 +40,6 @@ pub fn load_obj<F: Facade + ?Sized>(path: &'static str, disp: &F) -> VertexBuffe
             });
         }
     }
-    VertexBuffer::new(disp, &vertex_data)
+    VertexBuffer::new(context, &vertex_data)
         .unwrap()
-        .into_vertex_buffer_any()
 }
