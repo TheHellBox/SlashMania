@@ -29,6 +29,7 @@ fn projection_opengl(left: f32, right: f32, up: f32, down: f32, znear: f32) -> M
         -1.0,
         0.0,
     )
+    //Matrix4::new_perspective(16.0 / 9.0, 3.14 / 4.0, 0.01, 1000.0)
 }
 
 pub fn projection_opengl_fov(fov: xr::Fovf, znear: f32) -> Matrix4<f32> {

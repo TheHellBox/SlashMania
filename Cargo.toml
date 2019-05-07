@@ -4,9 +4,6 @@ version = "0.1.0"
 authors = ["TheHellBox <thehellbox11@gmail.com>"]
 edition = "2018"
 
-[features]
-rd = []
-
 [dependencies]
 glium="0.24"
 openxr= { version = "0.5", features = ["static", "nalgebra"] }
@@ -19,4 +16,3 @@ serde = { version = "1.0", features = ["derive"] }
 specs = "0.14"
 specs-derive = "0.4"
 x11 = { version = "2.18.1", features = ["xlib", "glx"] }
-renderdoc = "0.4.0"

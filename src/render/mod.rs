@@ -4,19 +4,11 @@ use glium::texture::{DepthFormat, DepthTexture2d, MipmapsOption};
 use glium::{vertex::VertexBuffer, Program, Texture2d};
 use std::collections::HashMap;
 
-use renderdoc::prelude::*;
-use renderdoc::{OverlayBits, RenderDoc, V110};
-
 use std::rc::Rc;
 
 pub mod backend;
 mod draw;
 mod shaders;
-
-pub struct RenderDocWrapper{
-    renderdoc: RenderDoc<V110>,
-    device: *mut std::ffi::c_void
-}
 
 pub struct Window {
     context: Rc<glium::backend::Context>,
@@ -24,8 +16,7 @@ pub struct Window {
     shaders: HashMap<String, Program>,
     models: HashMap<String, VertexBuffer<Vertex>>,
     textures: HashMap<String, Texture2d>,
-    depth_textures: Option<(DepthTexture2d, DepthTexture2d)>,
-    renderdoc: Option<RenderDocWrapper>
+    depth_textures: Option<(DepthTexture2d, DepthTexture2d)>
 }
 
 impl Window {
@@ -39,21 +30,6 @@ impl Window {
         let context =
             unsafe { glium::backend::Context::new(backend, false, Default::default()) }.unwrap();
 
-        let renderdoc = {
-            #[cfg(feature = "rd")]
-            {
-                let mut rd = RenderDoc::new().unwrap();
-                rd.set_active_window(raw_context as *mut _, std::ptr::null());
-                rd.mask_overlay_bits(OverlayBits::DEFAULT, OverlayBits::DEFAULT);
-                let mut rdw = RenderDocWrapper{
-                    renderdoc: rd,
-                    device: raw_context as *mut _
-                };
-                Some(rdw)
-            }
-            #[cfg(not(feature = "rd"))]
-            None
-        };
         Self {
             context,
             xr,
@@ -61,7 +37,6 @@ impl Window {
             shaders: HashMap::new(),
             models: HashMap::new(),
             textures: HashMap::new(),
-            renderdoc: renderdoc
         }
     }
     pub fn create_depth_textures(&mut self) {
@@ -92,6 +67,7 @@ impl Window {
             let depth_textures = self.depth_textures.as_ref().unwrap();
 
             self.xr.frame_stream_begin();
+
             let texture_left = unsafe {
                 glium::texture::texture2d::Texture2d::from_id(
                     &self.context,
@@ -119,10 +95,6 @@ impl Window {
                 )
             };
 
-            if let Some(renderdoc_wrapper) = &mut self.renderdoc{
-                renderdoc_wrapper.renderdoc.start_frame_capture(renderdoc_wrapper.device, std::ptr::null());
-            }
-
             let left_eye_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
                 &self.context,
                 &texture_left,
@@ -131,11 +103,6 @@ impl Window {
             .unwrap();
             self.draw_image(left_eye_buffer, false);
 
-            if let Some(renderdoc_wrapper) = &mut self.renderdoc{
-                renderdoc_wrapper.renderdoc.end_frame_capture(renderdoc_wrapper.device, std::ptr::null());
-                std::thread::sleep(std::time::Duration::from_millis(10000));
-            }
-
             let right_eye_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
                 &self.context,
                 &texture_right,
@@ -143,7 +110,7 @@ impl Window {
             )
             .unwrap();
             self.draw_image(right_eye_buffer, true);
-
+            self.context.finish();
             self.xr.swapchains.release_images();
             self.xr.frame_stream_end();
         }

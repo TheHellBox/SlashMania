@@ -1,7 +1,7 @@
 use crate::render::Vertex;
 
 use glium::backend::Facade;
-use glium::vertex::{VertexBuffer, VertexBufferAny};
+use glium::vertex::{VertexBuffer};
 use tobj;
 
 pub fn load_obj<F: Facade + ?Sized>(path: &'static str, context: &F) -> VertexBuffer<Vertex> {
@@ -14,32 +14,33 @@ pub fn load_obj<F: Facade + ?Sized>(path: &'static str, context: &F) -> VertexBu
         let mesh = &model.mesh;
         for idx in &mesh.indices {
             let i = *idx as usize;
-            let pos = [
-                mesh.positions[3 * i],
-                mesh.positions[3 * i + 1],
-                mesh.positions[3 * i + 2],
-            ];
-            let normal = if !mesh.normals.is_empty() {
-                [
-                    mesh.normals[3 * i],
-                    mesh.normals[3 * i + 1],
-                    mesh.normals[3 * i + 2],
-                ]
-            } else {
-                [0.0, 0.0, 0.0]
+            let pos = [mesh.positions[3 * i], mesh.positions[3 * i + 1], mesh.positions[3 * i + 2]];
+            let normal =
+                if !mesh.normals.is_empty() {
+                    [mesh.normals[3 * i], mesh.normals[3 * i + 1], mesh.normals[3 * i + 2]]
+                } else {
+                    [0.0, 0.0, 0.0]
             };
-            let texcord = if !mesh.texcoords.is_empty() {
-                [mesh.texcoords[i * 2], mesh.texcoords[i * 2 + 1]]
-            } else {
-                [0.0, 0.0]
+            let texcord =
+                if !mesh.texcoords.is_empty() {
+                    [mesh.texcoords[i * 2], mesh.texcoords[i * 2 + 1]]
+                } else {
+                    [0.0, 0.0]
             };
             vertex_data.push(Vertex {
                 position: pos,
                 normal: normal,
-                tex_coords: texcord,
+                tex_coords: texcord
             });
         }
     }
     VertexBuffer::new(context, &vertex_data)
         .unwrap()
+    /*glium::VertexBuffer::new(context,
+        &[
+            Vertex { position: [-0.5, -0.5, 0.0], normal: [0.0, 0.0, 0.0], tex_coords: [0.0, 0.0] },
+            Vertex { position: [ 0.0,  0.5, 0.0], normal: [0.0, 0.0, 0.0], tex_coords: [0.0, 0.0] },
+            Vertex { position: [ 0.5, -0.5, 0.0], normal: [0.0, 0.0, 0.0], tex_coords: [0.0, 0.0] },
+        ]
+    ).unwrap()*/
 }

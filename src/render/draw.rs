@@ -31,37 +31,36 @@ impl Window {
         let view: [[f32; 4]; 4] = xrmath::view(position, orientation).into();
 
         let transform: [[f32; 4]; 4] = calc_transform(
-            (0.5, 0.1, 0.1),
-            Translation3::new(0.0, 0.0, 0.0),
+            Translation3::new(-2.0, 0.0, 0.0),
             UnitQuaternion::from_quaternion(nalgebra::Quaternion::new(1.0, 0.0, 0.0, 0.0)))
             .into();
+        let model = self.models.get("cube");
+        let texture = self.textures.get("note_red");
+        let shader = self.shaders.get("simple");
 
-        target.draw(
-            &self.models["test_scene"],
-            &NoIndices(PrimitiveType::TrianglesList),
-            &self.shaders["simple"],
-            &uniform! { transform: transform, projection: projection, view: view, tex: &self.textures["note_red"]},
-            &get_params()
-        ).unwrap();
+        if let (Some(model), Some(texture), Some(shader)) = (model, texture, shader){
+            target.draw(
+                model,
+                &NoIndices(PrimitiveType::TrianglesList),
+                shader,
+                &uniform! { transform: transform, projection: projection, view: view, tex: texture},
+                &get_params()
+            ).unwrap();
+        }
+        else{
+            println!("Missing something for drawing");
+        }
     }
 }
 
 pub fn get_params() -> DrawParameters<'static> {
     use glium::{draw_parameters, Depth, DepthTest};
     DrawParameters {
-        depth: Depth {
-            test: DepthTest::IfMore,
-            write: true,
-            ..Default::default()
-        },
-        backface_culling: draw_parameters::BackfaceCullingMode::CullClockwise,
-        blend: draw_parameters::Blend::alpha_blending(),
         ..Default::default()
     }
 }
 
 pub fn calc_transform(
-    scale: (f32, f32, f32),
     position: Translation3<f32>,
     rotation: UnitQuaternion<f32>,
 ) -> Matrix4<f32> {

@@ -39,9 +39,11 @@ impl Backend {
 
         let context_attribs = [
             arb::GLX_CONTEXT_MAJOR_VERSION_ARB,
-            3,
+            4,
             arb::GLX_CONTEXT_MINOR_VERSION_ARB,
-            0,
+            5,
+            arb::GLX_CONTEXT_PROFILE_MASK_ARB,
+            arb::GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
             0,
         ];
 

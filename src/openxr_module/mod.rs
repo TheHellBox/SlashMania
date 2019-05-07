@@ -147,7 +147,7 @@ impl SwapChains {
 }
 
 pub struct OpenXR {
-    entry: xr::Entry,
+    //entry: xr::Entry,
     instance: xr::Instance,
     session: xr::Session<xr::OpenGL>,
     system: openxr::SystemId,
@@ -204,7 +204,7 @@ impl OpenXR {
         backend.dimmensions = resolution;
 
         OpenXR {
-            entry,
+            //entry,
             instance,
             session,
             spaces,
