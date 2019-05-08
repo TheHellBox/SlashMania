@@ -24,17 +24,18 @@ impl Window {
         let position = pose.position;
         let orientation = pose.orientation;
 
-        target.clear_color_and_depth((0.3, 0.3, 0.3, 1.0), 1.0);
+        target.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
 
         let projection: [[f32; 4]; 4] = xrmath::projection_opengl_fov(fov, 0.1)
             .into();
         let view: [[f32; 4]; 4] = xrmath::view(position, orientation).into();
 
         let transform: [[f32; 4]; 4] = calc_transform(
-            Translation3::new(-2.0, 0.0, 0.0),
+            (0.2, 0.2, 0.2),
+            Translation3::new(0.0, 1.0, -2.0),
             UnitQuaternion::from_quaternion(nalgebra::Quaternion::new(1.0, 0.0, 0.0, 0.0)))
             .into();
-        let model = self.models.get("cube");
+        let model = self.models.get("block");
         let texture = self.textures.get("note_red");
         let shader = self.shaders.get("simple");
 
@@ -53,13 +54,27 @@ impl Window {
 pub fn get_params() -> DrawParameters<'static> {
     use glium::{draw_parameters, Depth, DepthTest};
     DrawParameters {
+        depth: glium::Depth {
+            test: glium::DepthTest::IfLess,
+            write: true,
+            .. Default::default()
+        },
+        backface_culling: draw_parameters::BackfaceCullingMode::CullClockwise,
         ..Default::default()
     }
 }
 
 pub fn calc_transform(
+    scale: (f32, f32, f32),
     position: Translation3<f32>,
     rotation: UnitQuaternion<f32>,
 ) -> Matrix4<f32> {
-    nalgebra::Isometry3::from_parts(position, rotation).inverse().to_homogeneous()
+    let scale_matrix: Matrix4<f32> = Matrix4::new(
+        scale.0, 0.0, 0.0, 0.0,
+        0.0, scale.1, 0.0, 0.0,
+        0.0, 0.0, scale.2, 0.0,
+        0.0, 0.0, 0.0, 1.0,
+    );
+
+    nalgebra::Isometry3::from_parts(position, rotation).to_homogeneous() * scale_matrix
 }
