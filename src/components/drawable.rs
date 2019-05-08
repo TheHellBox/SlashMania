@@ -1,5 +1,3 @@
-use nalgebra;
-use nalgebra::{Matrix4, Translation3, UnitQuaternion, Vector3};
 use specs::{Component, VecStorage};
 #[derive(Debug, Component)]
 #[storage(VecStorage)]

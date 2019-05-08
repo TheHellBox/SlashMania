@@ -61,7 +61,7 @@ impl Swapchain {
         self.swapchain.as_mut()
     }
     pub fn get_images(&mut self) -> Option<u32> {
-        let mut swapchain = self.get_swapchain();
+        let swapchain = self.get_swapchain();
         let swapchain = swapchain?;
         let swapchain_image = get_swapchain_image(swapchain);
         Some(swapchain_image)
