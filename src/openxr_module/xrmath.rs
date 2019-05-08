@@ -1,4 +1,4 @@
-use nalgebra::{Matrix4, Translation3, UnitQuaternion, Vector3, Isometry3};
+use nalgebra::{Isometry3, Matrix4, Translation3, UnitQuaternion, Vector3};
 use openxr as xr;
 
 fn projection_opengl(left: f32, right: f32, up: f32, down: f32, znear: f32) -> Matrix4<f32> {
@@ -13,23 +13,19 @@ fn projection_opengl(left: f32, right: f32, up: f32, down: f32, znear: f32) -> M
         0.0,
         (right + left) / tan_angle_width,
         0.0,
-
         0.0,
         half_height,
         (up + down) / tan_angle_height,
         0.0,
-
         0.0,
         0.0,
         -1.0,
         -(znear * 2.0),
-
         0.0,
         0.0,
         -1.0,
         0.0,
     )
-    //Matrix4::new_perspective(16.0 / 9.0, 3.14 / 4.0, 0.01, 1000.0)
 }
 
 pub fn projection_opengl_fov(fov: xr::Fovf, znear: f32) -> Matrix4<f32> {
@@ -46,5 +42,7 @@ pub fn view(position: xr::Vector3f, orientation: xr::Quaternionf) -> Matrix4<f32
 
     let orientation: UnitQuaternion<f32> = orientation.into();
 
-    Isometry3::from_parts(position, orientation).inverse().to_homogeneous()
+    Isometry3::from_parts(position, orientation)
+        .inverse()
+        .to_homogeneous()
 }

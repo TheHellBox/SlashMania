@@ -60,6 +60,9 @@ impl Window {
     }
     pub fn draw(&mut self) {
         let swapchain_image = self.xr.swapchain.get_images();
+        if self.xr.session_state != openxr::SessionState::FOCUSED{
+            return
+        }
         if let Some(swapchain_image) = swapchain_image {
             if self.depth_textures.is_none() {
                 self.create_depth_textures();
@@ -91,7 +94,7 @@ impl Window {
                 &depth_textures.0,
             )
             .unwrap();
-            self.draw_image(left_eye_buffer, false);
+            self.draw_frame(left_eye_buffer, false);
 
             let right_eye_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
                 &self.context,
@@ -99,7 +102,7 @@ impl Window {
                 &depth_textures.1,
             )
             .unwrap();
-            self.draw_image(right_eye_buffer, true);
+            self.draw_frame(right_eye_buffer, true);
             self.context.finish();
             self.xr.swapchain.release_images();
             self.xr.frame_stream_end();
