@@ -16,7 +16,7 @@ pub struct Window {
     shaders: HashMap<String, Program>,
     models: HashMap<String, VertexBuffer<Vertex>>,
     textures: HashMap<String, Texture2d>,
-    depth_textures: Option<(DepthTexture2d, DepthTexture2d)>
+    depth_textures: Option<(DepthTexture2d, DepthTexture2d)>,
 }
 
 impl Window {
@@ -58,16 +58,12 @@ impl Window {
         .unwrap();
         self.depth_textures = Some((depth_texture_left, depth_texture_right));
     }
-    pub fn draw(&mut self) {
+    pub fn get_texture_array(&mut self) -> Option<glium::texture::texture2d_array::Texture2dArray> {
         let swapchain_image = self.xr.swapchain.get_images();
-        if self.xr.session_state != openxr::SessionState::FOCUSED{
-            return
-        }
         if let Some(swapchain_image) = swapchain_image {
             if self.depth_textures.is_none() {
                 self.create_depth_textures();
             }
-            let depth_textures = self.depth_textures.as_ref().unwrap();
 
             self.xr.frame_stream_begin();
 
@@ -85,28 +81,15 @@ impl Window {
                     },
                 )
             };
-            let texture_left = texture_array.layer(0).unwrap().mipmap(0).unwrap();
-            let texture_right = texture_array.layer(1).unwrap().mipmap(0).unwrap();
-
-            let left_eye_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
-                &self.context,
-                texture_left,
-                &depth_textures.0,
-            )
-            .unwrap();
-            self.draw_frame(left_eye_buffer, false);
-
-            let right_eye_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
-                &self.context,
-                texture_right,
-                &depth_textures.1,
-            )
-            .unwrap();
-            self.draw_frame(right_eye_buffer, true);
-            self.context.finish();
-            self.xr.swapchain.release_images();
-            self.xr.frame_stream_end();
+            Some(texture_array)
+        } else {
+            None
         }
+    }
+    pub fn finish_draw(&mut self) {
+        self.context.finish();
+        self.xr.swapchain.release_images();
+        self.xr.frame_stream_end();
     }
     pub fn update_xr(&mut self) {
         self.xr.update();

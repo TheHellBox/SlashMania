@@ -24,7 +24,7 @@ use crate::components::{note::Note, obstacle::Obstacle};
 use std::fs::File;
 use std::io::BufReader;
 
-pub fn open_file(path: String) {
+pub fn open_file(path: &std::path::Path) -> (Vec<Note>, Vec<Obstacle>) {
     let start = Instant::now();
     let file = File::open(path).unwrap();
     let reader = BufReader::new(file);
@@ -87,4 +87,5 @@ pub fn open_file(path: String) {
         }
     }
     println!("Parsing took {} milliseconds", start.elapsed().as_millis());
+    (notes, obstacles)
 }
