@@ -44,23 +44,23 @@ impl Window {
             &self.context,
             DepthFormat::F32,
             MipmapsOption::EmptyMipmaps,
-            self.xr.swapchains.resolution_left.0,
-            self.xr.swapchains.resolution_left.1,
+            self.xr.swapchain.resolution.0,
+            self.xr.swapchain.resolution.1,
         )
         .unwrap();
         let depth_texture_right = DepthTexture2d::empty_with_format(
             &self.context,
             DepthFormat::F32,
             MipmapsOption::EmptyMipmaps,
-            self.xr.swapchains.resolution_right.0,
-            self.xr.swapchains.resolution_right.1,
+            self.xr.swapchain.resolution.0,
+            self.xr.swapchain.resolution.1,
         )
         .unwrap();
         self.depth_textures = Some((depth_texture_left, depth_texture_right));
     }
     pub fn draw(&mut self) {
-        let swapchain_image = self.xr.swapchains.get_images();
-        if let Some((swapchain_image_left, swapchain_image_right)) = swapchain_image {
+        let swapchain_image = self.xr.swapchain.get_images();
+        if let Some(swapchain_image) = swapchain_image {
             if self.depth_textures.is_none() {
                 self.create_depth_textures();
             }
@@ -68,36 +68,26 @@ impl Window {
 
             self.xr.frame_stream_begin();
 
-            let texture_left = unsafe {
-                glium::texture::texture2d::Texture2d::from_id(
+            let texture_array = unsafe {
+                glium::texture::texture2d_array::Texture2dArray::from_id(
                     &self.context,
                     glium::texture::UncompressedFloatFormat::U8U8U8U8,
-                    swapchain_image_left,
+                    swapchain_image,
                     false,
                     glium::texture::MipmapsOption::NoMipmap,
-                    glium::texture::Dimensions::Texture2d {
-                        width: self.xr.swapchains.resolution_left.0,
-                        height: self.xr.swapchains.resolution_left.1,
+                    glium::texture::Dimensions::Texture2dArray {
+                        width: self.xr.swapchain.resolution.0,
+                        height: self.xr.swapchain.resolution.1,
+                        array_size: 2,
                     },
                 )
             };
-            let texture_right = unsafe {
-                glium::texture::texture2d::Texture2d::from_id(
-                    &self.context,
-                    glium::texture::UncompressedFloatFormat::U8U8U8U8,
-                    swapchain_image_right,
-                    false,
-                    glium::texture::MipmapsOption::NoMipmap,
-                    glium::texture::Dimensions::Texture2d {
-                        width: self.xr.swapchains.resolution_right.0,
-                        height: self.xr.swapchains.resolution_right.1,
-                    },
-                )
-            };
+            let texture_left = texture_array.layer(0).unwrap().mipmap(0).unwrap();
+            let texture_right = texture_array.layer(1).unwrap().mipmap(0).unwrap();
 
             let left_eye_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
                 &self.context,
-                &texture_left,
+                texture_left,
                 &depth_textures.0,
             )
             .unwrap();
@@ -105,13 +95,13 @@ impl Window {
 
             let right_eye_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
                 &self.context,
-                &texture_right,
+                texture_right,
                 &depth_textures.1,
             )
             .unwrap();
             self.draw_image(right_eye_buffer, true);
             self.context.finish();
-            self.xr.swapchains.release_images();
+            self.xr.swapchain.release_images();
             self.xr.frame_stream_end();
         }
     }
@@ -139,10 +129,6 @@ impl Window {
         self.models.insert(
             "cube".to_string(),
             load_obj("./assets/models/cube.obj", &self.context),
-        );
-        self.models.insert(
-            "test_scene".to_string(),
-            load_obj("./assets/models/test_scene.obj", &self.context),
         );
     }
     pub fn load_default_textures(&mut self) {

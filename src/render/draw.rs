@@ -47,9 +47,6 @@ impl Window {
                 &get_params()
             ).unwrap();
         }
-        else{
-            println!("Missing something for drawing");
-        }
     }
 }
 

@@ -4,19 +4,15 @@ use openxr as xr;
 
 const GL_RGBA8: u32 = 0x8058;
 
-pub struct SwapChains {
-    pub swapchain_left: Option<xr::Swapchain<xr::OpenGL>>,
-    pub resolution_left: (u32, u32),
-    pub swapchain_right: Option<xr::Swapchain<xr::OpenGL>>,
-    pub resolution_right: (u32, u32),
+pub struct Swapchain {
+    pub swapchain: Option<xr::Swapchain<xr::OpenGL>>,
+    pub resolution: (u32, u32),
 }
-impl SwapChains {
+impl Swapchain {
     fn empty() -> Self {
         Self {
-            swapchain_left: None,
-            swapchain_right: None,
-            resolution_left: (800, 600),
-            resolution_right: (800, 600),
+            swapchain: None,
+            resolution: (800, 600),
         }
     }
     fn new_from_session(
@@ -27,86 +23,48 @@ impl SwapChains {
         let view_configuration_views = instance
             .enumerate_view_configuration_views(system, xr::ViewConfigurationType::PRIMARY_STEREO)
             .unwrap();
-        let resolution_left = (
+        let resolution = (
             view_configuration_views[0].recommended_image_rect_width,
             view_configuration_views[0].recommended_image_rect_height,
         );
-        let resolution_right = (
-            view_configuration_views[1].recommended_image_rect_width,
-            view_configuration_views[1].recommended_image_rect_height,
-        );
+
         let sample_count_left = view_configuration_views[0].recommended_swapchain_sample_count;
-        let sample_count_right = view_configuration_views[1].recommended_swapchain_sample_count;
 
         let swapchain_formats = session.enumerate_swapchain_formats().unwrap();
         if !swapchain_formats.contains(&GL_RGBA8) {
             panic!("XR: Cannot use OpenGL GL_RGBA8 swapchain format");
         }
-        let swapchain_create_info_left: xr::SwapchainCreateInfo<xr::OpenGL> =
-            xr::SwapchainCreateInfo {
-                create_flags: xr::SwapchainCreateFlags::EMPTY,
-                usage_flags: xr::SwapchainUsageFlags::COLOR_ATTACHMENT
-                    | xr::SwapchainUsageFlags::SAMPLED,
-                format: GL_RGBA8,
-                sample_count: sample_count_left,
-                width: resolution_left.0,
-                height: resolution_left.1,
-                face_count: 1,
-                array_size: 1,
-                mip_count: 1,
-            };
+        let swapchain_create_info: xr::SwapchainCreateInfo<xr::OpenGL> = xr::SwapchainCreateInfo {
+            create_flags: xr::SwapchainCreateFlags::EMPTY,
+            usage_flags: xr::SwapchainUsageFlags::COLOR_ATTACHMENT
+                | xr::SwapchainUsageFlags::SAMPLED,
+            format: GL_RGBA8,
+            sample_count: sample_count_left,
+            width: resolution.0,
+            height: resolution.1,
+            face_count: 1,
+            array_size: 2,
+            mip_count: 1,
+        };
 
-        let swapchain_create_info_right: xr::SwapchainCreateInfo<xr::OpenGL> =
-            xr::SwapchainCreateInfo {
-                create_flags: xr::SwapchainCreateFlags::EMPTY,
-                usage_flags: xr::SwapchainUsageFlags::COLOR_ATTACHMENT
-                    | xr::SwapchainUsageFlags::SAMPLED,
-                format: GL_RGBA8,
-                sample_count: sample_count_right,
-                width: resolution_right.0,
-                height: resolution_right.1,
-                face_count: 1,
-                array_size: 1,
-                mip_count: 1,
-            };
-
-        let swapchain_left = session
-            .create_swapchain(&swapchain_create_info_left)
-            .unwrap();
-        let swapchain_right = session
-            .create_swapchain(&swapchain_create_info_right)
-            .unwrap();
+        let swapchain = session.create_swapchain(&swapchain_create_info).unwrap();
 
         Self {
-            swapchain_left: Some(swapchain_left),
-            swapchain_right: Some(swapchain_right),
-            resolution_left,
-            resolution_right,
+            swapchain: Some(swapchain),
+            resolution,
         }
     }
     pub fn is_initialized(&self) -> bool {
-        self.swapchain_left.is_none() && self.swapchain_right.is_none()
+        self.swapchain.is_none()
     }
-    pub fn get_swapchains(
-        &mut self,
-    ) -> Option<(
-        &mut xr::Swapchain<xr::OpenGL>,
-        &mut xr::Swapchain<xr::OpenGL>,
-    )> {
-        if self.swapchain_left.is_some() && self.swapchain_right.is_some() {
-            let swapchain_left = self.swapchain_left.as_mut().unwrap();
-            let swapchain_right = self.swapchain_right.as_mut().unwrap();
-            Some((swapchain_left, swapchain_right))
-        } else {
-            None
-        }
+    pub fn get_swapchain(&mut self) -> Option<&mut xr::Swapchain<xr::OpenGL>> {
+        self.swapchain.as_mut()
     }
-    pub fn get_images(&mut self) -> Option<(u32, u32)> {
-        let mut swapchains = self.get_swapchains();
-        let swapchains = swapchains.as_mut()?;
-        let swapchain_image_left = get_swapchain_image(swapchains.0);
-        let swapchain_image_right = get_swapchain_image(swapchains.1);
-        Some((swapchain_image_left, swapchain_image_right))
+    pub fn get_images(&mut self) -> Option<u32> {
+        let mut swapchain = self.get_swapchain();
+        let swapchain = swapchain?;
+        let swapchain_image = get_swapchain_image(swapchain);
+        Some(swapchain_image)
     }
     pub fn get_subimages(
         &mut self,
@@ -114,35 +72,35 @@ impl SwapChains {
         xr::SwapchainSubImage<xr::OpenGL>,
         xr::SwapchainSubImage<xr::OpenGL>,
     ) {
-        let resolution_left = self.resolution_left;
-        let resolution_right = self.resolution_right;
+        let resolution = self.resolution;
 
         let eye_rect_left = xr::Rect2Di {
             offset: xr::Offset2Di { x: 0, y: 0 },
             extent: xr::Extent2Di {
-                width: resolution_left.0 as i32,
-                height: resolution_left.1 as i32,
+                width: resolution.0 as i32,
+                height: resolution.1 as i32,
             },
         };
         let eye_rect_right = xr::Rect2Di {
             offset: xr::Offset2Di { x: 0, y: 0 },
             extent: xr::Extent2Di {
-                width: resolution_right.0 as i32,
-                height: resolution_right.1 as i32,
+                width: resolution.0 as i32,
+                height: resolution.1 as i32,
             },
         };
         let left_subimage: xr::SwapchainSubImage<xr::OpenGL> = openxr::SwapchainSubImage::new()
-            .swapchain(&self.swapchain_left.as_ref().unwrap())
+            .swapchain(&self.swapchain.as_ref().unwrap())
+            .image_array_index(0)
             .image_rect(eye_rect_left);
         let right_subimage: xr::SwapchainSubImage<xr::OpenGL> = openxr::SwapchainSubImage::new()
-            .swapchain(&self.swapchain_right.as_ref().unwrap())
+            .swapchain(&self.swapchain.as_ref().unwrap())
+            .image_array_index(1)
             .image_rect(eye_rect_right);
         (left_subimage, right_subimage)
     }
     pub fn release_images(&mut self) {
-        let swapchains = self.get_swapchains().unwrap();
-        swapchains.0.release_image().unwrap();
-        swapchains.1.release_image().unwrap();
+        let swapchain = self.get_swapchain().unwrap();
+        swapchain.release_image().unwrap();
     }
 }
 
@@ -151,7 +109,7 @@ pub struct OpenXR {
     instance: xr::Instance,
     session: xr::Session<xr::OpenGL>,
     system: openxr::SystemId,
-    pub swapchains: SwapChains,
+    pub swapchain: Swapchain,
     pub spaces: (Option<xr::Space>, Option<xr::Space>),
     pub session_state: xr::SessionState,
     pub views: Vec<xr::View>,
@@ -212,7 +170,7 @@ impl OpenXR {
             session_state: xr::SessionState::UNKNOWN,
             frame_stream,
             predicted_display_time: xr::Time::from_raw(0),
-            swapchains: SwapChains::empty(),
+            swapchain: Swapchain::empty(),
             views: Vec::with_capacity(4),
         }
     }
@@ -234,8 +192,8 @@ impl OpenXR {
                             self.finish_session()
                         }
                         xr::SessionState::RUNNING => {
-                            if self.swapchains.is_initialized() {
-                                self.create_swapchains()
+                            if self.swapchain.is_initialized() {
+                                self.create_swapchain()
                             }
                         }
                         _ => {}
@@ -252,8 +210,8 @@ impl OpenXR {
             .unwrap();
         self.views = views;
     }
-    pub fn create_swapchains(&mut self) {
-        self.swapchains = SwapChains::new_from_session(&self.session, &self.instance, self.system);
+    pub fn create_swapchain(&mut self) {
+        self.swapchain = Swapchain::new_from_session(&self.session, &self.instance, self.system);
     }
     pub fn frame_stream_begin(&mut self) {
         let state = self.frame_stream.wait().unwrap();
@@ -261,7 +219,7 @@ impl OpenXR {
         self.frame_stream.begin().unwrap();
     }
     pub fn frame_stream_end(&mut self) {
-        let subimages = self.swapchains.get_subimages();
+        let subimages = self.swapchain.get_subimages();
         let projection_view_left = xr::CompositionLayerProjectionView::new()
             .pose(self.views[0].pose)
             .fov(self.views[0].fov)

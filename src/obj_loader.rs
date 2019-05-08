@@ -36,11 +36,4 @@ pub fn load_obj<F: Facade + ?Sized>(path: &'static str, context: &F) -> VertexBu
     }
     VertexBuffer::new(context, &vertex_data)
         .unwrap()
-    /*glium::VertexBuffer::new(context,
-        &[
-            Vertex { position: [-0.5, -0.5, 0.0], normal: [0.0, 0.0, 0.0], tex_coords: [0.0, 0.0] },
-            Vertex { position: [ 0.0,  0.5, 0.0], normal: [0.0, 0.0, 0.0], tex_coords: [0.0, 0.0] },
-            Vertex { position: [ 0.5, -0.5, 0.0], normal: [0.0, 0.0, 0.0], tex_coords: [0.0, 0.0] },
-        ]
-    ).unwrap()*/
 }
