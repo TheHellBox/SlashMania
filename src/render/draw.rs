@@ -80,7 +80,7 @@ impl<'a> specs::System<'a> for Window {
 
     fn run(&mut self, (transforms, draws): Self::SystemData) {
         let texture_array = self.get_texture_array();
-        let mut window_frame = glium::Frame::new(self.context.clone(), (1024, 768));
+        let mut window_frame = glium::Frame::new(self.context.clone(), self.context.get_framebuffer_dimensions());
         window_frame.clear_color_and_depth((1.0, 1.0, 1.0, 1.0), 1.0);
         if let Some(texture_array) = texture_array {
             let depth_textures = self.depth_textures.as_ref().unwrap();
