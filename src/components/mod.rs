@@ -8,4 +8,13 @@ pub fn register_default(world: &mut specs::World) {
     world.register::<obstacle::Obstacle>();
     world.register::<transform::Transform>();
     world.register::<drawable::Drawable>();
+
+    world.add_resource(CurrentSongInfo{..Default::default()});
+}
+
+#[derive(Default)]
+pub struct CurrentSongInfo {
+    pub bpm: i32,
+    pub bpb: i32,
+    pub time: i32
 }

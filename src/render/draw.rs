@@ -41,7 +41,7 @@ impl Window {
         let position = pose.position;
         let orientation = pose.orientation;
 
-        target.clear_color_and_depth((0.1, 0.1, 0.1, 1.0), 1.0);
+        target.clear_color_and_depth((0.2, 0.2, 0.2, 1.0), 1.0);
 
         let projection: [[f32; 4]; 4] = xrmath::projection_opengl_fov(fov, 0.1).into();
         let view: [[f32; 4]; 4] = xrmath::view(position, orientation).into();
@@ -107,7 +107,7 @@ impl<'a> specs::System<'a> for Window {
                 (right_eye_buffer, orientation_right),
             ];
             for buffer in &mut buffers {
-                for (transform, draw, note) in (&transforms, &draws, &notes).join() {
+                for (transform, draw) in (&transforms, &draws).join() {
                     let transform_matrix = transform.transform_matrix().into();
                     let draw_object = DrawObjectInfo {
                         model: draw.model.clone(),

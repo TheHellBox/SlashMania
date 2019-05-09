@@ -1,6 +1,7 @@
 #![allow(unused)]
 use std::time::Instant;
 
+#[repr(i32)]
 pub enum Direction {
     Top = 0,
     Bottom = 1,
@@ -12,19 +13,30 @@ pub enum Direction {
 
     BottomLeft = 6,
     BottomRight = 7,
+
+    NoDirection = 8,
 }
 
+#[repr(i32)]
 pub enum NoteType {
     Red = 0,
     Blue = 1,
     Mine = 3,
 }
 
+pub struct ParsedSong{
+    pub notes: Vec<Note>,
+    pub obstacles: Vec<Obstacle>,
+    pub bpm: i32,
+    pub bpb: i32,
+    pub time: i32
+}
+
 use crate::components::{note::Note, obstacle::Obstacle};
 use std::fs::File;
 use std::io::BufReader;
 
-pub fn open_file(path: &std::path::Path) -> (Vec<Note>, Vec<Obstacle>) {
+pub fn open_file(path: &std::path::Path) -> ParsedSong {
     let start = Instant::now();
     let file = File::open(path).unwrap();
     let reader = BufReader::new(file);
@@ -35,6 +47,9 @@ pub fn open_file(path: &std::path::Path) -> (Vec<Note>, Vec<Obstacle>) {
     let bpb = json_content["_beatsPerBar"]
         .as_i64()
         .expect("Cannot parse BPB") as i32;
+    let time = json_content["_time"]
+        .as_i64()
+        .expect("Cannot parse time") as i32;
     let mut notes = vec![];
     let mut obstacles = vec![];
     if let serde_json::Value::Array(json_notes) = &json_content["_notes"] {
@@ -87,5 +102,11 @@ pub fn open_file(path: &std::path::Path) -> (Vec<Note>, Vec<Obstacle>) {
         }
     }
     println!("Parsing took {} milliseconds", start.elapsed().as_millis());
-    (notes, obstacles)
+    ParsedSong{
+        notes,
+        obstacles,
+        bpm,
+        bpb,
+        time
+    }
 }

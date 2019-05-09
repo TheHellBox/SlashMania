@@ -11,11 +11,24 @@ mod render;
 mod songs;
 mod textures;
 
-pub static SCALE: f32 = 5.0;
-
 use specs::World;
+use clap::{Arg, App, SubCommand};
 
 fn main() {
+    let matches = App::new("Slash Mania")
+        .arg(Arg::with_name("song")
+            .short("s")
+            .value_name("SONG")
+            .takes_value(true))
+        .arg(Arg::with_name("difficulty")
+            .short("d")
+            .value_name("DIFFICULTY")
+            .takes_value(true))
+        .get_matches();
+
+    let song_name = matches.value_of("song").unwrap_or("Test Song").to_string();
+    let difficulty = matches.value_of("difficulty").unwrap_or("Expert").to_string();
+
     let mut world = World::new();
     components::register_default(&mut world);
 
@@ -28,7 +41,7 @@ fn main() {
         .with_thread_local(window)
         .build();
 
-    songs::load_song("Test Song".to_string(), "Expert".to_string(), &mut world);
+    songs::load_song(song_name, difficulty, &mut world);
     'main: loop {
         dispatcher.dispatch(&mut world.res);
     }
