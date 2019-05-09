@@ -76,11 +76,12 @@ impl<'a> specs::System<'a> for Window {
     type SystemData = (
         specs::ReadStorage<'a, transform::Transform>,
         specs::ReadStorage<'a, drawable::Drawable>,
-        specs::ReadStorage<'a, note::Note>,
     );
 
-    fn run(&mut self, (transforms, draws, notes): Self::SystemData) {
+    fn run(&mut self, (transforms, draws): Self::SystemData) {
         let texture_array = self.get_texture_array();
+        let mut window_frame = glium::Frame::new(self.context.clone(), (1024, 768));
+        window_frame.clear_color_and_depth((1.0, 1.0, 1.0, 1.0), 1.0);
         if let Some(texture_array) = texture_array {
             let depth_textures = self.depth_textures.as_ref().unwrap();
             let texture_left = texture_array.layer(0).unwrap().mipmap(0).unwrap();
@@ -119,8 +120,19 @@ impl<'a> specs::System<'a> for Window {
                 }
             }
             self.finish_draw();
+
+            window_frame
+                .draw(
+                    &self.models["box_2d"],
+                    &NoIndices(PrimitiveType::TrianglesList),
+                    &self.shaders["simple2d"],
+                    &uniform! {tex: &texture_array},
+                    &Default::default(),
+                )
+                .unwrap();
         }
         self.update_xr();
+        window_frame.finish().unwrap();
     }
 }
 

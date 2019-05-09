@@ -49,12 +49,15 @@ impl Backend {
 
         unsafe {
             let c_proc_name = CString::new("glXCreateContextAttribsARB").unwrap();
+            let window_name = CString::new("Slash Mania").unwrap();
+
             let proc_addr = glx::glXGetProcAddress(c_proc_name.as_ptr() as *const u8);
             let glx_create_context_attribs =
                 mem::transmute::<_, GlXcreateContextAttribsArb>(proc_addr);
 
             let display = xlib::XOpenDisplay(ptr::null());
             let root = xlib::XDefaultRootWindow(display);
+
             let visual = glx::glXChooseVisual(display, 0, attr.as_ptr() as *mut _);
             let fb_config = glx::glXChooseFBConfig(
                 display,
@@ -62,6 +65,27 @@ impl Backend {
                 visual_attribs.as_ptr(),
                 &mut fbcount,
             );
+
+            let color_map = xlib::XCreateColormap(display, root, (*visual).visual, xlib::AllocNone);
+            let mut attributes: xlib::XSetWindowAttributes = mem::uninitialized();
+            attributes.colormap = color_map;
+
+            let window = xlib::XCreateWindow(
+                display,
+                root,
+                0,
+                0,
+                1024,
+                768,
+                0,
+                24,
+                xlib::InputOutput as u32,
+                (*visual).visual,
+                xlib::CWColormap,
+                &mut attributes,
+            );
+            xlib::XMapWindow(display, window);
+            xlib::XStoreName(display, window, window_name.as_ptr() as *const i8);
 
             let context = glx_create_context_attribs(
                 display,
@@ -80,8 +104,8 @@ impl Backend {
                 display,
                 visual,
                 fb_config,
-                drawable: root,
-                dimmensions: (800, 600),
+                drawable: window,
+                dimmensions: (1024, 768),
             }
         }
     }

@@ -1,10 +1,10 @@
-use crate::render::Vertex;
+use crate::render::{Vertex, Vertex2D};
 
 use glium::backend::Facade;
-use glium::vertex::VertexBuffer;
+use glium::vertex::{VertexBuffer, VertexBufferAny};
 use tobj;
 
-pub fn load_obj<F: Facade + ?Sized>(path: &'static str, context: &F) -> VertexBuffer<Vertex> {
+pub fn load_obj<F: Facade + ?Sized>(path: &'static str, context: &F) -> VertexBufferAny {
     use std::path::Path;
 
     let raw = tobj::load_obj(&Path::new(&path));
@@ -40,5 +40,41 @@ pub fn load_obj<F: Facade + ?Sized>(path: &'static str, context: &F) -> VertexBu
             });
         }
     }
-    VertexBuffer::new(context, &vertex_data).unwrap()
+    VertexBuffer::new(context, &vertex_data)
+        .unwrap()
+        .into_vertex_buffer_any()
+}
+
+pub fn box_vertex_buf<F: Facade + ?Sized>(context: &F) -> VertexBufferAny {
+    glium::VertexBuffer::new(
+        context,
+        &[
+            Vertex2D {
+                position: [1.0, -1.0],
+                tex_coords: [1.0, 0.0],
+            },
+            Vertex2D {
+                position: [-1.0, 1.0],
+                tex_coords: [0.0, 1.0],
+            },
+            Vertex2D {
+                position: [-1.0, -1.0],
+                tex_coords: [0.0, 0.0],
+            },
+            Vertex2D {
+                position: [-1.0, 1.0],
+                tex_coords: [0.0, 1.0],
+            },
+            Vertex2D {
+                position: [1.0, -1.0],
+                tex_coords: [1.0, 0.0],
+            },
+            Vertex2D {
+                position: [1.0, 1.0],
+                tex_coords: [1.0, 1.0],
+            },
+        ],
+    )
+    .unwrap()
+    .into_vertex_buffer_any()
 }

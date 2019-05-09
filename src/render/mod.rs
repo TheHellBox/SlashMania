@@ -1,7 +1,7 @@
 use crate::openxr_module::OpenXR;
 
 use glium::texture::{DepthFormat, DepthTexture2d, MipmapsOption};
-use glium::{vertex::VertexBuffer, Program, Texture2d};
+use glium::{vertex::VertexBufferAny, Program, Texture2d};
 use std::collections::HashMap;
 
 use std::rc::Rc;
@@ -14,7 +14,7 @@ pub struct Window {
     context: Rc<glium::backend::Context>,
     xr: OpenXR,
     shaders: HashMap<String, Program>,
-    models: HashMap<String, VertexBuffer<Vertex>>,
+    models: HashMap<String, VertexBufferAny>,
     textures: HashMap<String, Texture2d>,
     depth_textures: Option<(DepthTexture2d, DepthTexture2d)>,
 }
@@ -104,10 +104,18 @@ impl Window {
             None,
         )
         .unwrap();
+        let simple2d = glium::Program::from_source(
+            &self.context,
+            SHADER2D_SIMPLE_VERT,
+            SHADER2D_SIMPLE_FRAG,
+            None,
+        )
+        .unwrap();
         self.shaders.insert("simple".to_string(), simple);
+        self.shaders.insert("simple2d".to_string(), simple2d);
     }
     pub fn load_default_models(&mut self) {
-        use crate::obj_loader::load_obj;
+        use crate::obj_loader::{box_vertex_buf, load_obj};
         self.models.insert(
             "block".to_string(),
             load_obj("./assets/models/block.obj", &self.context),
@@ -116,6 +124,8 @@ impl Window {
             "cube".to_string(),
             load_obj("./assets/models/cube.obj", &self.context),
         );
+        self.models
+            .insert("box_2d".to_string(), box_vertex_buf(&self.context));
     }
     pub fn load_default_textures(&mut self) {
         use crate::textures::load_texture;
@@ -163,3 +173,10 @@ pub struct Vertex {
     pub tex_coords: [f32; 2],
 }
 implement_vertex!(Vertex, position, normal, tex_coords);
+
+#[derive(Copy, Clone)]
+pub struct Vertex2D {
+    pub position: [f32; 2],
+    pub tex_coords: [f32; 2],
+}
+implement_vertex!(Vertex2D, position, tex_coords);

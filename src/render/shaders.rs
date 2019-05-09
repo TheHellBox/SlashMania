@@ -39,3 +39,30 @@ void main() {
     v_normal = normal;
 }
 "#;
+
+pub const SHADER2D_SIMPLE_FRAG: &'static str = r#"
+#version 140
+in vec2 v_tex_coords;
+
+out vec4 color;
+
+uniform sampler2DArray tex;
+
+void main() {
+    color = vec4(texture(tex, vec3(v_tex_coords, 0)));
+}
+"#;
+
+pub const SHADER2D_SIMPLE_VERT: &'static str = r#"
+#version 140
+
+in vec2 position;
+in vec2 tex_coords;
+
+out vec2 v_tex_coords;
+
+void main() {
+    gl_Position = vec4(position, 0.0, 1.0);
+    v_tex_coords = tex_coords;
+}
+"#;

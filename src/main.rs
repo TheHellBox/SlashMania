@@ -12,7 +12,7 @@ mod songs;
 mod textures;
 
 use specs::World;
-use clap::{Arg, App, SubCommand};
+use clap::{Arg, App};
 
 fn main() {
     let matches = App::new("Slash Mania")

@@ -60,7 +60,7 @@ pub fn load_song_from_file(file: &std::path::Path, world: &mut specs::World) {
             nalgebra::Translation3::new(
                 -note.line_index as f32 + 1.5,
                 note.line_layer as f32,
-                note.time * 20.0,
+                note.time * 5.0,
             ),
             note_direction,
             nalgebra::Vector3::new(0.3, 0.3, 0.3),
