@@ -58,7 +58,7 @@ impl Window {
         .unwrap();
         self.depth_textures = Some((depth_texture_left, depth_texture_right));
     }
-    pub fn get_texture_array(&mut self) -> Option<glium::texture::texture2d_array::Texture2dArray> {
+    pub fn get_texture_array(&mut self) -> Option<glium::texture::srgb_texture2d_array::SrgbTexture2dArray> {
         let swapchain_image = self.xr.swapchain.get_images();
         if let Some(swapchain_image) = swapchain_image {
             if self.depth_textures.is_none() {
@@ -68,9 +68,9 @@ impl Window {
             self.xr.frame_stream_begin();
 
             let texture_array = unsafe {
-                glium::texture::texture2d_array::Texture2dArray::from_id(
+                glium::texture::srgb_texture2d_array::SrgbTexture2dArray::from_id(
                     &self.context,
-                    glium::texture::UncompressedFloatFormat::U8U8U8U8,
+                    glium::texture::SrgbFormat::U8U8U8U8,
                     swapchain_image,
                     false,
                     glium::texture::MipmapsOption::NoMipmap,

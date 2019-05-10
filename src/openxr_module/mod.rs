@@ -2,7 +2,7 @@ pub mod xrmath;
 
 use openxr as xr;
 
-const GL_RGBA8: u32 = 0x8058;
+const GL_SRGB8_ALPHA8: u32 = 0x8C43;
 
 pub struct Swapchain {
     pub swapchain: Option<xr::Swapchain<xr::OpenGL>>,
@@ -12,7 +12,7 @@ impl Swapchain {
     fn empty() -> Self {
         Self {
             swapchain: None,
-            resolution: (800, 600),
+            resolution: (800, 800),
         }
     }
     fn new_from_session(
@@ -31,14 +31,14 @@ impl Swapchain {
         let sample_count_left = view_configuration_views[0].recommended_swapchain_sample_count;
 
         let swapchain_formats = session.enumerate_swapchain_formats().unwrap();
-        if !swapchain_formats.contains(&GL_RGBA8) {
-            panic!("XR: Cannot use OpenGL GL_RGBA8 swapchain format");
+        if !swapchain_formats.contains(&GL_SRGB8_ALPHA8) {
+            panic!("XR: Cannot use OpenGL GL_SRGB8_ALPHA8 swapchain format");
         }
         let swapchain_create_info: xr::SwapchainCreateInfo<xr::OpenGL> = xr::SwapchainCreateInfo {
             create_flags: xr::SwapchainCreateFlags::EMPTY,
             usage_flags: xr::SwapchainUsageFlags::COLOR_ATTACHMENT
                 | xr::SwapchainUsageFlags::SAMPLED,
-            format: GL_RGBA8,
+            format: GL_SRGB8_ALPHA8,
             sample_count: sample_count_left,
             width: resolution.0,
             height: resolution.1,

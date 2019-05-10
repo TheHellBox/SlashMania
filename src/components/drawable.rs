@@ -5,6 +5,7 @@ pub struct Drawable {
     pub model: String,
     pub texture: String,
     pub shader: String,
+    pub enabled: bool,
 }
 
 impl Drawable {
@@ -13,6 +14,7 @@ impl Drawable {
             model,
             texture,
             shader,
+            enabled: true
         }
     }
 }

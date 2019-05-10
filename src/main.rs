@@ -15,6 +15,7 @@ use specs::World;
 use clap::{Arg, App};
 
 fn main() {
+    println!("Starting SlashMania");
     let matches = App::new("Slash Mania")
         .arg(Arg::with_name("song")
             .short("s")
@@ -38,11 +39,20 @@ fn main() {
     window.load_default_textures();
 
     let mut dispatcher = specs::DispatcherBuilder::new()
+        .with(components::sound::SoundSystem::new(), "Sound System", &[])
+        .with(components::note::NoteSystem{..Default::default()}, "Note System", &[])
         .with_thread_local(window)
         .build();
 
     songs::load_song(song_name, difficulty, &mut world);
     'main: loop {
         dispatcher.dispatch(&mut world.res);
+        let ents_to_remove = {
+            let ents_to_remove_raw = &mut world.write_resource::<components::RemoveEntities>().0;
+            let ents_to_remove = ents_to_remove_raw.clone();
+            ents_to_remove_raw.clear();
+            ents_to_remove
+        };
+        world.delete_entities(&ents_to_remove).unwrap();
     }
 }

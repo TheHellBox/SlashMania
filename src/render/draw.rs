@@ -78,11 +78,11 @@ impl<'a> specs::System<'a> for Window {
         specs::ReadStorage<'a, drawable::Drawable>,
     );
 
-    fn run(&mut self, (transforms, draws): Self::SystemData) {
+    fn run(&mut self, (transforms, drawables): Self::SystemData) {
         let texture_array = self.get_texture_array();
-        let mut window_frame = glium::Frame::new(self.context.clone(), self.context.get_framebuffer_dimensions());
-        window_frame.clear_color_and_depth((1.0, 1.0, 1.0, 1.0), 1.0);
+        self.update_xr();
         if let Some(texture_array) = texture_array {
+            let mut window_frame = glium::Frame::new(self.context.clone(), (800, 800));
             let depth_textures = self.depth_textures.as_ref().unwrap();
             let texture_left = texture_array.layer(0).unwrap().mipmap(0).unwrap();
             let texture_right = texture_array.layer(1).unwrap().mipmap(0).unwrap();
@@ -108,15 +108,17 @@ impl<'a> specs::System<'a> for Window {
                 (right_eye_buffer, orientation_right),
             ];
             for buffer in &mut buffers {
-                for (transform, draw) in (&transforms, &draws).join() {
-                    let transform_matrix = transform.transform_matrix().into();
-                    let draw_object = DrawObjectInfo {
-                        model: draw.model.clone(),
-                        texture: draw.texture.clone(),
-                        shader: draw.shader.clone(),
-                        transform: transform_matrix,
-                    };
-                    self.draw_object(&buffer.1, draw_object, &mut buffer.0)
+                for (transform, drawable) in (&transforms, &drawables).join() {
+                    if drawable.enabled {
+                        let transform_matrix = transform.transform_matrix().into();
+                        let draw_object = DrawObjectInfo {
+                            model: drawable.model.clone(),
+                            texture: drawable.texture.clone(),
+                            shader: drawable.shader.clone(),
+                            transform: transform_matrix,
+                        };
+                        self.draw_object(&buffer.1, draw_object, &mut buffer.0);
+                    }
                 }
             }
             self.finish_draw();
@@ -130,9 +132,8 @@ impl<'a> specs::System<'a> for Window {
                     &Default::default(),
                 )
                 .unwrap();
+            window_frame.finish().unwrap();
         }
-        self.update_xr();
-        window_frame.finish().unwrap();
     }
 }
 

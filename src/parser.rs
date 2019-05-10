@@ -49,22 +49,24 @@ pub fn open_file(path: &std::path::Path) -> ParsedSong {
         .expect("Cannot parse BPB") as i32;
     let time = json_content["_time"]
         .as_i64()
-        .expect("Cannot parse time") as i32;
+        .unwrap_or(0) as i32;
+    let bpms = 1000.0 * 60.0 / bpm as f32; // beats per ms
+
     let mut notes = vec![];
     let mut obstacles = vec![];
     if let serde_json::Value::Array(json_notes) = &json_content["_notes"] {
         for note in json_notes {
             let line_layer = note["_lineLayer"]
                 .as_i64()
-                .expect("Cannot parse note line layer") as i32;
+                .expect("Cannot parse note line layer") as u8;
             let line_index = note["_lineIndex"]
                 .as_i64()
-                .expect("Cannot parse note line index") as i32;
-            let note_type = note["_type"].as_i64().expect("Cannot parse note line type") as i32;
-            let time = note["_time"].as_f64().expect("Cannot parse note time") as f32;
+                .expect("Cannot parse note line index") as u8;
+            let note_type = note["_type"].as_i64().expect("Cannot parse note line type") as u8;
+            let time = note["_time"].as_f64().expect("Cannot parse note time") as f32 * bpms; // Time in ms
             let direction = note["_cutDirection"]
                 .as_i64()
-                .expect("Cannot parse note direction") as i32;
+                .expect("Cannot parse note direction") as u8;
 
             notes.push(Note {
                 line_layer,

@@ -14,10 +14,11 @@ pub fn load_song_from_file(file: &std::path::Path, world: &mut specs::World) {
         let mut song_info = world.write_resource::<CurrentSongInfo>();
         *song_info = parsed_song_info;
     }
+
     for note in parsed_song.notes {
         // FIXME: Unsafe is not good, but there is no other simple workarounds... Well there is but they require more code
-        let note_type: NoteType = unsafe { std::mem::transmute(note.note_type) };
-        let direction: Direction = unsafe { std::mem::transmute(note.direction) };
+        let note_type: NoteType = unsafe { std::mem::transmute(note.note_type as u32) };
+        let direction: Direction = unsafe { std::mem::transmute(note.direction as u32) };
 
         let mut note_texture = match note_type {
             NoteType::Red => "note_red",
@@ -27,17 +28,17 @@ pub fn load_song_from_file(file: &std::path::Path, world: &mut specs::World) {
         .to_string();
 
         let note_direction = match direction {
-            Direction::Top => UnitQuaternion::from_euler_angles(0.0, 0.0, 3.14),
-            Direction::Bottom => UnitQuaternion::from_euler_angles(0.0, 0.0, 0.0),
+            Direction::Bottom => UnitQuaternion::from_euler_angles(0.0, 0.0, 3.14),
+            Direction::Top => UnitQuaternion::from_euler_angles(0.0, 0.0, 0.0),
 
-            Direction::Left => UnitQuaternion::from_euler_angles(0.0, 0.0, 3.14 / 2.0),
-            Direction::Right => UnitQuaternion::from_euler_angles(0.0, 0.0, -3.14 / 2.0),
+            Direction::Right => UnitQuaternion::from_euler_angles(0.0, 0.0, 3.14 / 2.0),
+            Direction::Left => UnitQuaternion::from_euler_angles(0.0, 0.0, -3.14 / 2.0),
 
-            Direction::TopLeft => UnitQuaternion::from_euler_angles(0.0, 0.0, 3.14 / 4.0 * 3.0),
-            Direction::TopRight => UnitQuaternion::from_euler_angles(0.0, 0.0, -3.14 / 4.0 * 3.0),
+            Direction::BottomRight => UnitQuaternion::from_euler_angles(0.0, 0.0, 3.14 / 4.0 * 3.0),
+            Direction::BottomLeft => UnitQuaternion::from_euler_angles(0.0, 0.0, -3.14 / 4.0 * 3.0),
 
-            Direction::BottomLeft => UnitQuaternion::from_euler_angles(0.0, 0.0, 3.14 / 4.0),
-            Direction::BottomRight => UnitQuaternion::from_euler_angles(0.0, 0.0, -3.14 / 4.0),
+            Direction::TopRight => UnitQuaternion::from_euler_angles(0.0, 0.0, 3.14 / 4.0),
+            Direction::TopLeft => UnitQuaternion::from_euler_angles(0.0, 0.0, -3.14 / 4.0),
 
             Direction::NoDirection => {
                 note_texture = match note_type {
@@ -55,12 +56,11 @@ pub fn load_song_from_file(file: &std::path::Path, world: &mut specs::World) {
             note_texture,
             "simple".to_string(),
         );
-
         let transform = transform::Transform::new(
             nalgebra::Translation3::new(
-                -note.line_index as f32 + 1.5,
-                note.line_layer as f32,
-                note.time * 5.0,
+                -(note.line_index as f32) + 1.5,
+                note.line_layer as f32 + 0.5,
+                note.time / 100.0 + 5.0,
             ),
             note_direction,
             nalgebra::Vector3::new(0.3, 0.3, 0.3),
@@ -80,5 +80,9 @@ pub fn load_song(name: String, difficulty: String, world: &mut specs::World) {
     load_song_from_file(
         &std::path::Path::new(&format!("./assets/songs/{}/{}.json", name, difficulty)),
         world,
-    )
+    );
+
+    let mut sound_events = world.write_resource::<sound::SoundEvents>();
+    let mut audio_start_event = sound::SoundEvent::AddSound(format!("./assets/songs/{}/song.ogg", name), None);
+    sound_events.queue.push(audio_start_event);
 }

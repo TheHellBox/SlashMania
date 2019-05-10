@@ -75,8 +75,8 @@ impl Backend {
                 root,
                 0,
                 0,
-                1024,
-                768,
+                800,
+                800,
                 0,
                 24,
                 xlib::InputOutput as u32,
@@ -105,7 +105,7 @@ impl Backend {
                 visual,
                 fb_config,
                 drawable: window,
-                dimmensions: (1024, 768),
+                dimmensions: (800, 800),
             }
         }
     }

@@ -10,10 +10,13 @@ openxr= { version = "0.5", features = ["static", "nalgebra"] }
 tobj = "0.1.7"
 nalgebra="0.18"
 image = "0.21.1"
-conrod_core="0.63"
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 specs = "0.14"
 specs-derive = "0.4"
 x11 = { version = "2.18.1", features = ["xlib", "glx"] }
-clap = "2.33.0"
+clap = "2.33"
+rodio = "0.8"
+
+[profile.release]
+debug = true
