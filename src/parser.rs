@@ -36,11 +36,11 @@ use crate::components::{note::Note, obstacle::Obstacle};
 use std::fs::File;
 use std::io::BufReader;
 
-pub fn open_file(path: &std::path::Path) -> ParsedSong {
+pub fn open_file(path: &std::path::Path) -> Result<ParsedSong, std::io::Error> {
     let start = Instant::now();
-    let file = File::open(path).unwrap();
+    let file = File::open(path)?;
     let reader = BufReader::new(file);
-    let json_content: serde_json::Value = serde_json::from_reader(reader).unwrap();
+    let json_content: serde_json::Value = serde_json::from_reader(reader)?;
     let bpm = json_content["_beatsPerMinute"]
         .as_i64()
         .expect("Cannot parse BPM") as i32;
@@ -104,11 +104,11 @@ pub fn open_file(path: &std::path::Path) -> ParsedSong {
         }
     }
     println!("Parsing took {} milliseconds", start.elapsed().as_millis());
-    ParsedSong{
+    Ok(ParsedSong{
         notes,
         obstacles,
         bpm,
         bpb,
         time
-    }
+    })
 }

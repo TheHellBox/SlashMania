@@ -3,8 +3,8 @@ use crate::components::*;
 use nalgebra::UnitQuaternion;
 use specs::Builder;
 
-pub fn load_song_from_file(file: &std::path::Path, world: &mut specs::World) {
-    let parsed_song = crate::parser::open_file(file);
+pub fn load_song_from_file(file: &std::path::Path, world: &mut specs::World) -> Result<(), std::io::Error>{
+    let parsed_song = crate::parser::open_file(file)?;
     {
         let parsed_song_info = CurrentSongInfo{
             bpm: parsed_song.bpm,
@@ -73,16 +73,18 @@ pub fn load_song_from_file(file: &std::path::Path, world: &mut specs::World) {
             .with(drawable)
             .build();
     }
+    Ok(())
 }
 
-pub fn load_song(name: String, difficulty: String, world: &mut specs::World) {
+pub fn load_song(name: String, difficulty: String, world: &mut specs::World) -> Result<(), std::io::Error>{
     // Yes yes, that's not real song name, that's just an folder name. I know it. I'm just too lazy to do something better FIXME
     load_song_from_file(
         &std::path::Path::new(&format!("./assets/songs/{}/{}.json", name, difficulty)),
         world,
-    );
+    )?;
 
     let mut sound_events = world.write_resource::<sound::SoundEvents>();
-    let mut audio_start_event = sound::SoundEvent::AddSound(format!("./assets/songs/{}/song.ogg", name), None);
+    let audio_start_event = sound::SoundEvent::AddSound(format!("./assets/songs/{}/song.ogg", name), Some("SongPlayback".to_string()));
     sound_events.queue.push(audio_start_event);
+    Ok(())
 }

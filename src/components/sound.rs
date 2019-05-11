@@ -9,7 +9,7 @@ pub enum SoundEvent {
     // Option<String> is a name. A name is beeing used if you want to pause or continue sound, leave None if you want to play it once
     AddSound(String, Option<String>),
     PauseSound(String),
-    ContinueSong(String),
+    ContinueSound(String),
 }
 
 #[derive(Default)]
@@ -32,8 +32,17 @@ impl<'a> specs::System<'a> for SoundSystem {
                     } else {
                         sink.detach();
                     }
-                }
-                _ => {}
+                },
+                SoundEvent::PauseSound(name) => {
+                    if let Some(sink) = self.sounds.get(name) {
+                        sink.pause();
+                    }
+                },
+                SoundEvent::ContinueSound(name) => {
+                    if let Some(sink) = self.sounds.get(name) {
+                        sink.play();
+                    }
+                },
             }
         }
         sound_events.queue.clear();

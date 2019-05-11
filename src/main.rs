@@ -44,7 +44,11 @@ fn main() {
         .with_thread_local(window)
         .build();
 
-    songs::load_song(song_name, difficulty, &mut world);
+    let song = songs::load_song(song_name, difficulty, &mut world);
+    match song {
+        Err(e) => println!("Error while loading song: {}", e),
+        _ => {}
+    };
     'main: loop {
         dispatcher.dispatch(&mut world.res);
         let ents_to_remove = {

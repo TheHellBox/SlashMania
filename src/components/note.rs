@@ -36,7 +36,7 @@ impl<'a> specs::System<'a> for NoteSystem {
             .as_millis();
         if self.last_update_time_ms != 0 {
             let time_diff = (current_time - self.last_update_time_ms) as f32;
-            for (ent, transform, note, drawable) in (&ents, &mut transforms, &notes, &mut drawables).join() {
+            for (ent, transform, _note, drawable) in (&ents, &mut transforms, &notes, &mut drawables).join() {
                 transform.position.vector =
                     transform.position.vector - nalgebra::Vector3::new(0.0, 0.0, time_diff / 100.0);
                 if transform.position.z < 5.0 {
