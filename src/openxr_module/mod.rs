@@ -28,7 +28,7 @@ impl Swapchain {
             view_configuration_views[0].recommended_image_rect_height,
         );
 
-        let sample_count_left = view_configuration_views[0].recommended_swapchain_sample_count;
+        let sample_count = view_configuration_views[0].recommended_swapchain_sample_count;
 
         let swapchain_formats = session.enumerate_swapchain_formats().unwrap();
         if !swapchain_formats.contains(&GL_SRGB8_ALPHA8) {
@@ -39,7 +39,7 @@ impl Swapchain {
             usage_flags: xr::SwapchainUsageFlags::COLOR_ATTACHMENT
                 | xr::SwapchainUsageFlags::SAMPLED,
             format: GL_SRGB8_ALPHA8,
-            sample_count: sample_count_left,
+            sample_count: sample_count,
             width: resolution.0,
             height: resolution.1,
             face_count: 1,
@@ -176,16 +176,29 @@ impl OpenXR {
     }
 
     pub fn update(&mut self) {
+        if self.swapchain.is_initialized() {
+            let view_configuration_views = self
+                .instance
+                .enumerate_view_configuration_views(
+                    self.system,
+                    xr::ViewConfigurationType::PRIMARY_STEREO,
+                )
+                .unwrap();
+            let resolution = (
+                view_configuration_views[0].recommended_image_rect_width,
+                view_configuration_views[0].recommended_image_rect_height,
+            );
+            if resolution != self.swapchain.resolution {
+                self.swapchain.resolution = resolution;
+                self.recreate_swapchain();
+            }
+        }
+
         let mut buffer = xr::EventDataBuffer::new();
         while let Some(event) = self.instance.poll_event(&mut buffer).unwrap() {
             use xr::Event::*;
             match event {
                 SessionStateChanged(session_change) => {
-                    println!(
-                        "session state changed to {:?} at t={:?}",
-                        session_change.state(),
-                        session_change.time()
-                    );
                     self.session_state = session_change.state();
                     match session_change.state() {
                         xr::SessionState::EXITING | xr::SessionState::LOSS_PENDING => {
@@ -193,7 +206,7 @@ impl OpenXR {
                         }
                         xr::SessionState::RUNNING => {
                             if self.swapchain.is_initialized() {
-                                self.create_swapchain()
+                                self.recreate_swapchain()
                             }
                         }
                         _ => {}
@@ -210,7 +223,7 @@ impl OpenXR {
             .unwrap();
         self.views = views;
     }
-    pub fn create_swapchain(&mut self) {
+    pub fn recreate_swapchain(&mut self) {
         self.swapchain = Swapchain::new_from_session(&self.session, &self.instance, self.system);
     }
     pub fn frame_stream_begin(&mut self) {

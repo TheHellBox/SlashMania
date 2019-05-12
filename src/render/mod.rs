@@ -1,6 +1,6 @@
 use crate::openxr_module::OpenXR;
 
-use glium::texture::{DepthFormat, DepthTexture2d, MipmapsOption};
+use glium::texture::{DepthFormat, DepthTexture2dArray, MipmapsOption};
 use glium::{vertex::VertexBufferAny, Program, Texture2d};
 use std::collections::HashMap;
 
@@ -16,7 +16,7 @@ pub struct Window {
     shaders: HashMap<String, Program>,
     models: HashMap<String, VertexBufferAny>,
     textures: HashMap<String, Texture2d>,
-    depth_textures: Option<(DepthTexture2d, DepthTexture2d)>,
+    depth_texture_array: Option<DepthTexture2dArray>,
 }
 
 impl Window {
@@ -33,38 +33,33 @@ impl Window {
         Self {
             context,
             xr,
-            depth_textures: None,
+            depth_texture_array: None,
             shaders: HashMap::new(),
             models: HashMap::new(),
             textures: HashMap::new(),
         }
     }
-    pub fn create_depth_textures(&mut self) {
-        let depth_texture_left = DepthTexture2d::empty_with_format(
+    pub fn create_depth_texture(&mut self) {
+        let depth_texture = DepthTexture2dArray::empty_with_format(
             &self.context,
             DepthFormat::F32,
             MipmapsOption::EmptyMipmaps,
             self.xr.swapchain.resolution.0,
             self.xr.swapchain.resolution.1,
+            2,
         )
         .unwrap();
-        let depth_texture_right = DepthTexture2d::empty_with_format(
-            &self.context,
-            DepthFormat::F32,
-            MipmapsOption::EmptyMipmaps,
-            self.xr.swapchain.resolution.0,
-            self.xr.swapchain.resolution.1,
-        )
-        .unwrap();
-        self.depth_textures = Some((depth_texture_left, depth_texture_right));
+        self.depth_texture_array = Some(depth_texture);
     }
     pub fn get_texture_array(&mut self) -> Option<glium::texture::srgb_texture2d_array::SrgbTexture2dArray> {
         let swapchain_image = self.xr.swapchain.get_images();
         if let Some(swapchain_image) = swapchain_image {
-            if self.depth_textures.is_none() {
-                self.create_depth_textures();
+            if self.depth_texture_array.is_none(){
+                self.create_depth_texture();
             }
-
+            if self.xr.swapchain.resolution != self.depth_texture_array.as_ref().unwrap().dimensions() {
+                self.create_depth_texture();
+            }
             self.xr.frame_stream_begin();
 
             let texture_array = unsafe {

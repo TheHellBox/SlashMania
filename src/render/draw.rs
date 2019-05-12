@@ -83,20 +83,22 @@ impl<'a> specs::System<'a> for Window {
         self.update_xr();
         if let Some(texture_array) = texture_array {
             let mut window_frame = glium::Frame::new(self.context.clone(), (800, 800));
-            let depth_textures = self.depth_textures.as_ref().unwrap();
+            let depth_texture_array = self.depth_texture_array.as_ref().unwrap();
             let texture_left = texture_array.layer(0).unwrap().mipmap(0).unwrap();
+            let depth_left = depth_texture_array.layer(0).unwrap().mipmap(0).unwrap();
             let texture_right = texture_array.layer(1).unwrap().mipmap(0).unwrap();
+            let depth_right = depth_texture_array.layer(1).unwrap().mipmap(0).unwrap();
 
             let mut left_eye_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
                 &self.context,
                 texture_left,
-                &depth_textures.0,
+                depth_left,
             )
             .unwrap();
             let mut right_eye_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
                 &self.context,
                 texture_right,
-                &depth_textures.1,
+                depth_right,
             )
             .unwrap();
 
