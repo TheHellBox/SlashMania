@@ -27,8 +27,8 @@ pub enum NoteType {
 pub struct ParsedSong{
     pub notes: Vec<Note>,
     pub obstacles: Vec<Obstacle>,
-    pub bpm: i32,
-    pub bpb: i32,
+    pub bpm: f32,
+    pub bpb: f32,
     pub time: i32
 }
 
@@ -42,15 +42,15 @@ pub fn open_file(path: &std::path::Path) -> Result<ParsedSong, std::io::Error> {
     let reader = BufReader::new(file);
     let json_content: serde_json::Value = serde_json::from_reader(reader)?;
     let bpm = json_content["_beatsPerMinute"]
-        .as_i64()
-        .expect("Cannot parse BPM") as i32;
+        .as_f64()
+        .expect("Cannot parse BPM") as f32;
     let bpb = json_content["_beatsPerBar"]
-        .as_i64()
-        .expect("Cannot parse BPB") as i32;
+        .as_f64()
+        .expect("Cannot parse BPB") as f32;
     let time = json_content["_time"]
         .as_i64()
         .unwrap_or(0) as i32;
-    let bpms = 1000.0 * 60.0 / bpm as f32; // beats per ms
+    let bpms = 1000.0 * 60.0 / bpm; // beats per ms
 
     let mut notes = vec![];
     let mut obstacles = vec![];

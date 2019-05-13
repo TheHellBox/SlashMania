@@ -23,8 +23,8 @@ pub fn register_default(world: &mut specs::World) {
 
 #[derive(Default)]
 pub struct CurrentSongInfo {
-    pub bpm: i32,
-    pub bpb: i32,
+    pub bpm: f32,
+    pub bpb: f32,
     pub time: i32,
 }
 
