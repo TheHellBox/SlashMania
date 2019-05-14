@@ -17,6 +17,3 @@ specs-derive = "0.4"
 x11 = { version = "2.18.1", features = ["xlib", "glx"] }
 clap = "2.33"
 rodio = "0.8"
-
-[profile.release]
-debug = true

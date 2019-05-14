@@ -82,7 +82,6 @@ impl Window {
         }
     }
     pub fn finish_draw(&mut self) {
-        self.context.finish();
         self.xr.swapchain.release_images();
         self.xr.frame_stream_end();
     }
@@ -118,6 +117,10 @@ impl Window {
         self.models.insert(
             "cube".to_string(),
             load_obj("./assets/models/cube.obj", &self.context),
+        );
+        self.models.insert(
+            "mine".to_string(),
+            load_obj("./assets/models/mine.obj", &self.context),
         );
         self.models
             .insert("box_2d".to_string(), box_vertex_buf(&self.context));

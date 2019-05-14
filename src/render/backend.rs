@@ -14,6 +14,8 @@ type GlXcreateContextAttribsArb = unsafe extern "C" fn(
     attribs: *const c_int,
 ) -> glx::GLXContext;
 
+pub type GlXswapIntervalExt = unsafe extern "C" fn(*mut xlib::Display, x11::xlib::Drawable, interval: c_int);
+
 pub struct Backend {
     pub context: glx::GLXContext,
     display: *mut xlib::Display,
@@ -48,12 +50,19 @@ impl Backend {
         ];
 
         unsafe {
-            let c_proc_name = CString::new("glXCreateContextAttribsARB").unwrap();
+            let c_proc_name_create_con_attr = CString::new("glXCreateContextAttribsARB").unwrap();
+            let c_proc_name_swap_interval = CString::new("glXSwapIntervalEXT").unwrap();
             let window_name = CString::new("Slash Mania").unwrap();
 
-            let proc_addr = glx::glXGetProcAddress(c_proc_name.as_ptr() as *const u8);
+            let proc_addr =
+                glx::glXGetProcAddress(c_proc_name_create_con_attr.as_ptr() as *const u8);
             let glx_create_context_attribs =
                 mem::transmute::<_, GlXcreateContextAttribsArb>(proc_addr);
+
+            let proc_addr =
+                glx::glXGetProcAddress(c_proc_name_swap_interval.as_ptr() as *const u8);
+            let glx_swap_interval_ext =
+                mem::transmute::<_, GlXswapIntervalExt>(proc_addr);
 
             let display = xlib::XOpenDisplay(ptr::null());
             let root = xlib::XDefaultRootWindow(display);
@@ -86,7 +95,6 @@ impl Backend {
             );
             xlib::XMapWindow(display, window);
             xlib::XStoreName(display, window, window_name.as_ptr() as *const i8);
-
             let context = glx_create_context_attribs(
                 display,
                 *fb_config,
@@ -97,7 +105,8 @@ impl Backend {
             if context.is_null() {
                 panic!("glXCreateContextAttribsARB failed")
             }
-            glx::glXMakeCurrent(display, root, context);
+            glx::glXMakeCurrent(display, window, context);
+            glx_swap_interval_ext(display, window, 0);
 
             Self {
                 context,
