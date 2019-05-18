@@ -41,7 +41,7 @@ impl Window {
         let position = pose.position;
         let orientation = pose.orientation;
 
-        target.clear_color_and_depth((0.2, 0.2, 0.2, 1.0), 1.0);
+        target.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
 
         let projection: [[f32; 4]; 4] = xrmath::projection_opengl_fov(fov, 0.1).into();
         let view: [[f32; 4]; 4] = xrmath::view(position, orientation).into();

@@ -18,6 +18,18 @@ void main() {
 }
 "#;
 
+pub const SHADER_WALL_FRAG: &'static str = r#"
+#version 140
+in vec3 v_normal;
+in vec2 v_tex_coords;
+
+out vec4 color;
+
+void main() {
+    color = vec4(1.0, 0.2, 0.2, 0.7);
+}
+"#;
+
 pub const SHADER_SIMPLE_VERT: &'static str = r#"
 #version 140
 

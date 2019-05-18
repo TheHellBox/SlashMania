@@ -105,7 +105,15 @@ impl Window {
             None,
         )
         .unwrap();
+        let wall_shader = glium::Program::from_source(
+            &self.context,
+            SHADER_SIMPLE_VERT,
+            SHADER_WALL_FRAG,
+            None,
+        )
+        .unwrap();
         self.shaders.insert("simple".to_string(), simple);
+        self.shaders.insert("wall".to_string(), wall_shader);
         self.shaders.insert("simple2d".to_string(), simple2d);
     }
     pub fn load_default_models(&mut self) {

@@ -14,7 +14,7 @@ impl Drawable {
             model,
             texture,
             shader,
-            enabled: true
+            enabled: true,
         }
     }
 }

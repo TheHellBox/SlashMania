@@ -42,7 +42,10 @@ pub fn view(position: xr::Vector3f, orientation: xr::Quaternionf) -> Matrix4<f32
 
     let orientation: UnitQuaternion<f32> = orientation.into();
 
-    Isometry3::from_parts(position, UnitQuaternion::from_euler_angles(0.0, 3.14, 0.0) * orientation)
-        .inverse()
-        .to_homogeneous()
+    Isometry3::from_parts(
+        position,
+        UnitQuaternion::from_euler_angles(0.0, 3.14, 0.0) * orientation,
+    )
+    .inverse()
+    .to_homogeneous()
 }

@@ -41,6 +41,7 @@ fn main() {
     let mut dispatcher = specs::DispatcherBuilder::new()
         .with(components::sound::SoundSystem::new(), "Sound System", &[])
         .with(components::note::NoteSystem{..Default::default()}, "Note System", &[])
+        .with(components::obstacle::ObstacleSystem{..Default::default()}, "Obstacle System", &[])
         .with_thread_local(window)
         .build();
 

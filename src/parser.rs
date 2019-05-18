@@ -1,28 +1,4 @@
-#![allow(unused)]
 use std::time::Instant;
-
-#[repr(i32)]
-pub enum Direction {
-    Top = 0,
-    Bottom = 1,
-    Left = 2,
-    Right = 3,
-
-    TopLeft = 4,
-    TopRight = 5,
-
-    BottomLeft = 6,
-    BottomRight = 7,
-
-    NoDirection = 8,
-}
-
-#[repr(i32)]
-pub enum NoteType {
-    Red = 0,
-    Blue = 1,
-    Mine = 3,
-}
 
 pub struct ParsedSong {
     pub notes: Vec<Note>,
@@ -33,7 +9,7 @@ pub struct ParsedSong {
     pub song_file: String,
 }
 
-use crate::components::{note::Note, obstacle::Obstacle};
+use crate::components::{note::*, obstacle::*};
 use std::fs::File;
 use std::io::BufReader;
 
@@ -58,8 +34,11 @@ pub fn open_file(path: &std::path::Path) -> Result<ParsedSong, std::io::Error> {
         .expect("Cannot parse BPB") as f32;
     let time = level_json["_time"].as_i64().unwrap_or(0) as i32;
     let bpms = 1000.0 * 60.0 / bpm; // beats per ms
-    // FIXME: It will use song file defined for default difficulty
-    let song_file = info_json["difficultyLevels"].as_array().unwrap()[0]["audioPath"].as_str().expect("Cannot parse audioPath").to_string();
+                                    // FIXME: It will use song file defined for default difficulty
+    let song_file = info_json["difficultyLevels"].as_array().unwrap()[0]["audioPath"]
+        .as_str()
+        .expect("Cannot parse audioPath")
+        .to_string();
 
     let mut notes = vec![];
     let mut obstacles = vec![];
@@ -77,9 +56,25 @@ pub fn open_file(path: &std::path::Path) -> Result<ParsedSong, std::io::Error> {
                 .as_i64()
                 .expect("Cannot parse note direction") as u8;
 
-            // FIXME: Unsafe is not good, but there is no other simple workarounds... Well there is but they require more code
-            let note_type: NoteType = unsafe { std::mem::transmute(note_type as u32) };
-            let direction: Direction = unsafe { std::mem::transmute(direction as u32) };
+            let note_type: NoteType = match note_type {
+                0 => NoteType::Red,
+                1 => NoteType::Blue,
+                _ => NoteType::Mine,
+            };
+            let direction: Direction = match direction {
+                0 => Direction::Top,
+                1 => Direction::Bottom,
+                2 => Direction::Left,
+                3 => Direction::Right,
+
+                4 => Direction::TopLeft,
+                5 => Direction::TopRight,
+
+                6 => Direction::BottomLeft,
+                7 => Direction::BottomRight,
+
+                _ => Direction::NoDirection,
+            };
 
             notes.push(Note {
                 line_layer,
@@ -107,6 +102,12 @@ pub fn open_file(path: &std::path::Path) -> Result<ParsedSong, std::io::Error> {
             let width = note["_width"]
                 .as_i64()
                 .expect("Cannot parse obstacle width") as i32;
+
+            let obstacle_type: ObstacleType = match obstacle_type {
+                0 => ObstacleType::Wall,
+                1 => ObstacleType::Ceiling,
+                _ => ObstacleType::Wall,
+            };
 
             obstacles.push(Obstacle {
                 line_index,

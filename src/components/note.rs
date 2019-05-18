@@ -1,6 +1,30 @@
 use crate::components::*;
-use crate::parser::*;
 use specs::{Component, Join, VecStorage};
+
+#[repr(i32)]
+pub enum Direction {
+    Top = 0,
+    Bottom = 1,
+    Left = 2,
+    Right = 3,
+
+    TopLeft = 4,
+    TopRight = 5,
+
+    BottomLeft = 6,
+    BottomRight = 7,
+
+    NoDirection = 8,
+}
+
+#[repr(i32)]
+#[warn(unused_imports)]
+pub enum NoteType {
+    Red = 0,
+    Blue = 1,
+    Mine = 3,
+}
+
 
 #[derive(Component)]
 #[storage(VecStorage)]
@@ -38,23 +62,27 @@ impl<'a> specs::System<'a> for NoteSystem {
             .as_millis();
         if self.last_update_time_ms != 0 {
             let time_diff = (current_time - self.last_update_time_ms) as f32;
-            for (ent, transform, note, drawable) in (&ents, &mut transforms, &notes, &mut drawables).join() {
+            for (ent, transform, note, drawable) in
+                (&ents, &mut transforms, &notes, &mut drawables).join()
+            {
                 transform.position.vector =
                     transform.position.vector - nalgebra::Vector3::new(0.0, 0.0, time_diff / 60.0);
                 let (remove_position, sound_enabled) = match note.note_type {
-                    crate::parser::NoteType::Mine => (-5.0, false),
-                    _ => (5.0, true)
+                    NoteType::Mine => (-5.0, false),
+                    _ => (5.0, true),
                 };
                 if transform.position.z < remove_position {
                     ents_to_remove.0.push(ent);
-                    if sound_enabled{
-                        sounds.queue.push(sound::SoundEvent::AddSound("./assets/sounds/slash.mp3".to_string(), None));
+                    if sound_enabled {
+                        sounds.queue.push(sound::SoundEvent::AddSound(
+                            "./assets/sounds/slash.mp3".to_string(),
+                            None,
+                        ));
                     }
                 }
-                if transform.position.z > 40.0{
+                if transform.position.z > 40.0 {
                     drawable.enabled = false;
-                }
-                else{
+                } else {
                     drawable.enabled = true;
                 }
             }

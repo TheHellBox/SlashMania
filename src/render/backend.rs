@@ -14,7 +14,8 @@ type GlXcreateContextAttribsArb = unsafe extern "C" fn(
     attribs: *const c_int,
 ) -> glx::GLXContext;
 
-pub type GlXswapIntervalExt = unsafe extern "C" fn(*mut xlib::Display, x11::xlib::Drawable, interval: c_int);
+pub type GlXswapIntervalExt =
+    unsafe extern "C" fn(*mut xlib::Display, x11::xlib::Drawable, interval: c_int);
 
 pub struct Backend {
     pub context: glx::GLXContext,
@@ -59,10 +60,8 @@ impl Backend {
             let glx_create_context_attribs =
                 mem::transmute::<_, GlXcreateContextAttribsArb>(proc_addr);
 
-            let proc_addr =
-                glx::glXGetProcAddress(c_proc_name_swap_interval.as_ptr() as *const u8);
-            let glx_swap_interval_ext =
-                mem::transmute::<_, GlXswapIntervalExt>(proc_addr);
+            let proc_addr = glx::glXGetProcAddress(c_proc_name_swap_interval.as_ptr() as *const u8);
+            let glx_swap_interval_ext = mem::transmute::<_, GlXswapIntervalExt>(proc_addr);
 
             let display = xlib::XOpenDisplay(ptr::null());
             let root = xlib::XDefaultRootWindow(display);

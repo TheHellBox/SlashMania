@@ -32,17 +32,17 @@ impl<'a> specs::System<'a> for SoundSystem {
                     } else {
                         sink.detach();
                     }
-                },
+                }
                 SoundEvent::PauseSound(name) => {
                     if let Some(sink) = self.sounds.get(name) {
                         sink.pause();
                     }
-                },
+                }
                 SoundEvent::ContinueSound(name) => {
                     if let Some(sink) = self.sounds.get(name) {
                         sink.play();
                     }
-                },
+                }
             }
         }
         sound_events.queue.clear();
